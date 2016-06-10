@@ -21,7 +21,7 @@ using System.Collections;
 
 [RequireComponent(typeof(RectTransform))]
 [RequireComponent(typeof(Image))]
-public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
+public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
 {
 
 	#region "PRIVATE CONSTANTS"
@@ -449,14 +449,14 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 
 	#region "EVENT FUNCTIONS"
 
-		public	void							OnPointerEnter(PointerEventData eventData)
+		public	void							OnPointerEnter(	PointerEventData eventData)
 		{
 			if (this.Enabled)
 				_img.color = ItemHighlightColor;
 			else
 				_img.color = ItemDisabledColor;
 		}
-		public	void							OnPointerExit(PointerEventData eventData)
+		public	void							OnPointerExit(	PointerEventData eventData)
 		{
 			if (!this.Enabled)
 				_img.color = ItemDisabledColor;
@@ -465,7 +465,13 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 			else
 				_img.color = ItemNormalColor;
 		}
-		public	void							OnPointerClick(PointerEventData eventData)
+		public	void							OnPointerDown(	PointerEventData eventData)
+		{
+		}
+		public	void							OnPointerUp(		PointerEventData eventData)
+		{
+		}
+		public	void							OnPointerClick(	PointerEventData eventData)
 		{
 			if (!this.Enabled)
 				return;
