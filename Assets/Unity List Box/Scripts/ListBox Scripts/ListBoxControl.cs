@@ -260,6 +260,11 @@ public	class						ListBoxControl : MonoBehaviour
 			// MARK CONTROL AS INITIALIZED
 			_blnInitialized = true;
 		}
+		private void			OnEnable()
+		{
+			// MAKE SURE THAT THE LIST BOX ITEM CONTAINER IS PROPERLY SIZED (HEIGHT)
+			UpdateListBoxContainerSize();
+		}
 
 		private void			ResizeContainer()
 		{
@@ -890,6 +895,14 @@ public	class						ListBoxControl : MonoBehaviour
 				return (_intSelectedItem == intIndex || _intSelectedList.FindIndex(x => x == intIndex) >= 0);
 			}
 		
+			// -- RESIZE THE CONTAINER (IF NECESSARY)
+			public	void			UpdateListBoxContainerSize()
+			{
+				Vector2 v2 = ContainerRect.sizeDelta;
+				v2.y = ((this.Height + this.Spacing) * Items.Count) + this.Spacing;
+				ContainerRect.sizeDelta = v2;
+			}
+
 		#endregion
 
 	#endregion
