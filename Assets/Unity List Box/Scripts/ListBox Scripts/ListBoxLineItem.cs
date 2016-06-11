@@ -4,7 +4,10 @@
 //        Author: Michael Marzilli   ( http://www.linkedin.com/in/michaelmarzilli , http://www.develteam.com/Developer/Rowell/Portfolio )
 //       Created: Jun 10, 2016
 //	
-// VERS 1.0.000 : Jun 10, 2016 : Original File Created. Released for Unity 3D.
+// VERS 1.0.000 : Jun 10, 2016 :	Original File Created. Released for Unity 3D.
+//			1.0.001	:	Jun 11, 2016 :	Added a SubText field/element to the ListBox Control.
+//																The SubText field is a right justified field that can add additional information.
+//																Such as displaying a price for an item in and item list for a shop.
 //
 // ===========================================================================================================
 
@@ -32,13 +35,15 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 
 	#region "PRIVATE VARIABLES"
 
-		private ListBoxControl		_lbControl	= null;
-		private RectTransform			_rt					= null;
-		private RectTransform			_rtTxt			= null;
-		private RectTransform			_rtImg			= null;
-		private Image							_img				= null;
-		private	Text							_txtText		= null;
-		private Image							_imgIcon		= null;
+		private ListBoxControl		_lbControl		= null;
+		private RectTransform			_rt						= null;
+		private RectTransform			_rtMainTxt		= null;
+		private RectTransform			_rtSubTxt			= null;
+		private RectTransform			_rtImg				= null;
+		private Image							_img					= null;
+		private	Text							_txtMainText	= null;
+		private Text							_txtSubText		= null;
+		private Image							_imgIcon			= null;
 
 		private	Color							_itemNormalColor;
 		private	Color							_itemHighlightColor;
@@ -48,7 +53,8 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 		private	int								_intIndex				= 0;
 
 		private	string						_strValue				= "";
-		private string						_strText				= "";
+		private string						_strMainText		= "";
+		private string						_strSubText			= "";
 
 		private float							_fXpos					=  2;
 		private float							_fYpos					= -2;
@@ -76,41 +82,46 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 				return _lbControl;
 			}
 		}
-		private Text							DisplayedText
-		{
-			get
-			{
-				if (_txtText == null)
-					if (transform.GetChild(0).gameObject != null && transform.GetChild(0).GetComponent<Text>() != null)
-					{ 
-						_txtText	= transform.GetChild(0).GetComponent<Text>();
-						_rtTxt		= _txtText.GetComponent<RectTransform>();
-					}
-				return _txtText;
-			}
-		}
 		private Image							DisplayedIcon
 		{
 			get
 			{
 				if (_imgIcon == null)
-					if (transform.GetChild(1).gameObject != null && transform.GetChild(1).GetComponent<Image>() != null)
+					if (transform.GetChild(0).gameObject != null && transform.GetChild(0).GetComponent<Image>() != null)
 					{ 
-						_imgIcon	= transform.GetChild(1).GetComponent<Image>();
+						_imgIcon	= transform.GetChild(0).GetComponent<Image>();
 						_rtImg		= _imgIcon.GetComponent<RectTransform>();
 					}
 				return _imgIcon;
 			}
 		}
-		private RectTransform			TextRT
+		private Text							DisplayedMainText
 		{
 			get
 			{
-				if (_rtTxt == null)
-						_rtTxt = DisplayedText.GetComponent<RectTransform>();
-				return _rtTxt;
+				if (_txtMainText == null)
+					if (transform.GetChild(1).gameObject != null && transform.GetChild(1).GetComponent<Text>() != null)
+					{ 
+						_txtMainText	= transform.GetChild(1).GetComponent<Text>();
+						_rtMainTxt		= _txtMainText.GetComponent<RectTransform>();
+					}
+				return _txtMainText;
 			}
 		}
+		private Text							DisplayedSubText
+		{
+			get
+			{
+				if (_txtSubText == null)
+					if (transform.GetChild(2).gameObject != null && transform.GetChild(2).GetComponent<Text>() != null)
+					{
+						_txtSubText = transform.GetChild(2).GetComponent<Text>();
+						_rtSubTxt	= _txtSubText.GetComponent<RectTransform>();
+					}
+				return _txtSubText;
+			}
+		}
+
 		private RectTransform			ImageRT
 		{
 			get
@@ -118,6 +129,24 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 				if (_rtImg == null)
 						_rtImg = DisplayedIcon.GetComponent<RectTransform>();
 				return _rtImg;
+			}
+		}
+		private RectTransform			MainTextRT
+		{
+			get
+			{
+				if (_rtMainTxt == null)
+						_rtMainTxt = DisplayedMainText.GetComponent<RectTransform>();
+				return _rtMainTxt;
+			}
+		}
+		private RectTransform			SubTextRT
+		{
+			get
+			{
+				if (_rtSubTxt == null)
+						_rtSubTxt = DisplayedSubText.GetComponent<RectTransform>();
+				return _rtSubTxt;
 			}
 		}
 		private bool							HasIcon
@@ -173,13 +202,26 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 		{
 			get
 			{
-				return _strText;
+				return _strMainText;
 			}
 			set
 			{
-				_strText = value.Trim();
-				DisplayedText.text = _strText;
-				this.gameObject.name = _strText;
+				_strMainText = value.Trim();
+				DisplayedMainText.text = _strMainText;
+				this.gameObject.name = _strMainText;
+				UpdateContent();
+			}
+		}
+		public	string						SubText
+		{
+			get
+			{
+				return _strSubText;
+			}
+			set
+			{
+				_strSubText = value.Trim();
+				DisplayedSubText.text	= _strSubText;
 				UpdateContent();
 			}
 		}
@@ -377,29 +419,29 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 				v2.y = -(_fHeight / 2);
 				ImageRT.localPosition = v2;
 
-				// SET TEXT SIZE
+				// SET TEXT SIZE - TAKE INTO ACCOUNT SUB TEXT
 				v2.y = _fHeight - (ELEMENT_SPACING * 2);
-				v2.x = _fWidth  - (ImageRT.sizeDelta.x + (ELEMENT_SPACING * 3));
-				TextRT.sizeDelta = v2;
+				v2.x = _fWidth  - (ImageRT.sizeDelta.x + (ELEMENT_SPACING * 3)) - ((_strSubText == "") ? 0 : 50);
+				MainTextRT.sizeDelta = v2;
 
 				// SET TEXT POSITION
 				v2.x = (ImageRT.sizeDelta.x + (ELEMENT_SPACING * 2));
 				v2.y = -(_fHeight / 2);
-				TextRT.localPosition = v2;
+				MainTextRT.localPosition = v2;
 
 			} else {
 				// HIDE THE ICON IMAGE
 				DisplayedIcon.gameObject.SetActive(false);
 
-				// SET TEXT SIZE
+				// SET TEXT SIZE - TAKE INTO ACCOUNT SUB TEXT
 				v2.y = _fHeight - (ELEMENT_SPACING * 2);
-				v2.x = _fWidth  - (ELEMENT_SPACING * 2);
-				TextRT.sizeDelta = v2;
+				v2.x = _fWidth  - (ELEMENT_SPACING * 2) - ((_strSubText == "") ? 0 : 50);
+				MainTextRT.sizeDelta = v2;
 
 				// SET TEXT POSITION
 				v2.x =  (ELEMENT_SPACING);
 				v2.y = -(_fHeight / 2);
-				TextRT.localPosition = v2;
+				MainTextRT.localPosition = v2;
 			}
 
 			// COLORING
@@ -467,9 +509,13 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 		}
 		public	void							OnPointerDown(	PointerEventData eventData)
 		{
+			// BUG IN UNITY MANDATES THAT, IN ORDER FOR OnPointerClick TO WORK, BOTH 
+			// OnPointerDown AND OnPointerUp EVENTS MUST ALSO BE PRESENT.
 		}
 		public	void							OnPointerUp(		PointerEventData eventData)
 		{
+			// BUG IN UNITY MANDATES THAT, IN ORDER FOR OnPointerClick TO WORK, BOTH 
+			// OnPointerDown AND OnPointerUp EVENTS MUST ALSO BE PRESENT.
 		}
 		public	void							OnPointerClick(	PointerEventData eventData)
 		{

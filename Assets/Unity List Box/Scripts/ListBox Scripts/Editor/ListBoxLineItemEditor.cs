@@ -44,9 +44,10 @@ public class ListBoxLineItemEditor : Editor
 			EditorStyles.label.fontStyle = FontStyle.Bold;
 			EditorGUILayout.LabelField("LINE ITEM VALUES");
 			EditorStyles.label.fontStyle = FontStyle.Normal;
-			EditorGUILayout.LabelField("Index", myTarget.Index.ToString());
-			EditorGUILayout.LabelField("Value", myTarget.Value);
-			EditorGUILayout.LabelField("Text",	myTarget.Text);
+			EditorGUILayout.LabelField("Index",			myTarget.Index.ToString());
+			EditorGUILayout.LabelField("Value",			myTarget.Value);
+			EditorGUILayout.LabelField("Text",			myTarget.Text);
+			EditorGUILayout.LabelField("Sub Text",	myTarget.SubText);
 			if (Application.isPlaying && myTarget.ListBoxControlObject != null)
 				EditorGUILayout.LabelField("Selected", (myTarget.ListBoxControlObject.GetComponent<ListBoxControl>().IsSelectedByIndex(myTarget.Index)) ? "YES" : "no");
 			EditorGUILayout.Separator();

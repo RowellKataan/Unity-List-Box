@@ -9,9 +9,9 @@
 // ===========================================================================================================
 
 #if UNITY_EDITOR
-#define		IS_DEBUGGING
+	#define		IS_DEBUGGING
 #else
-#undef		IS_DEBUGGING
+	#undef		IS_DEBUGGING
 #endif
 
 using UnityEngine;
@@ -44,7 +44,7 @@ public class DemoListBox : MonoBehaviour
 		{
 			set
 			{
-				ResultTextObject.text = "<b>SELECTED ITEM(S):</b>\n" + value.Trim();
+				ResultTextObject.text = "<b><size=16>SELECTED ITEM(S):</size></b>\n<b>Index : Value - Text</b>\n" + value.Trim();
 			}
 		}
 
@@ -56,6 +56,7 @@ public class DemoListBox : MonoBehaviour
 		{
 			StartCoroutine(StartEnum());
 		}
+
 		/// <summary>
 		/// Wait for the ListBoxControl object to finish Initializing before performing actions on it.
 		/// </summary>
@@ -71,11 +72,30 @@ public class DemoListBox : MonoBehaviour
 					MyListBox.OnChange += OnChange;
 					for (int i = 4; i < 11; i++)
 					{ 
-						MyListBox.AddItem(i, "Item #" + i.ToString());
+						if (i == 4)
+							MyListBox.AddItem(i, "Item #" + i.ToString(), "", (i * 3 * 100));																				// SET THE SUBTEXT FIELD TO AN INTEGER
+						else if (i == 5)
+							MyListBox.AddItem(i, "Item #" + i.ToString(), "", "$200.00");																						// SET THE SUBTEXT FIELD TO A STRING
+						else if (i == 6)
+							MyListBox.AddItem("Bob", "Item #" + i.ToString());																											// USE A STRING AS THE VALUE
+						else if (i == 7)
+							MyListBox.AddItem(new string[] { "This", "is", "an", "Array" }, "Item #" + i.ToString());								// USE A STRING ARRAY AS THE VALUE
+						else if (i == 8)
+						{
+							MyListBox.AddItem(i, "Item #" + i.ToString() + " (disabled)");
+							MyListBox.DisableByIndex(i - 1);																																				// DISABLE THIS LIST ITEM
+						} 
+						else if (i == 9)
+							MyListBox.AddItem(i, "Item #" + i.ToString(), Resources.Load<Sprite>("Images/Status-Green-DOT-UI"));		// ADD ITEM WITH ICON SET BY SPRITE OBJECT
+						else if (i == 10)
+							MyListBox.AddItem(i, "Item #" + i.ToString(), "Images/Status-Green-DOT-UI");														// ADD ITEM WITH ICON SET BY PATH TO SPRITE OBJECT
+						else
+							MyListBox.AddItem(i, "Item #" + i.ToString());
 					}
 					blnDone = true;
 				}
 			}
+			MyListBox.SetToTop();		// SET THE SCROLLBAR TO THE TOP OF THE LIST
 		}
 
 		/// <summary>

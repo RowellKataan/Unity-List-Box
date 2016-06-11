@@ -4,7 +4,10 @@
 //        Author: Michael Marzilli   ( http://www.linkedin.com/in/michaelmarzilli , http://www.develteam.com/Developer/Rowell/Portfolio )
 //       Created: Jun 10, 2016
 //	
-// VERS 1.0.000 : Jun 10, 2016 : Original File Created. Released for Unity 3D.
+// VERS 1.0.000 : Jun 10, 2016 :	Original File Created. Released for Unity 3D.
+//			1.0.001	:	Jun 11, 2016 :	Added a SubText field/element to the ListBox Control.
+//																The SubText field is a right justified field that can add additional information.
+//																Such as displaying a price for an item in and item list for a shop.
 //
 // ===========================================================================================================
 
@@ -33,14 +36,16 @@ public	class						ListBoxControl : MonoBehaviour
 		{
 			public	string		Value		= "";
 			public	string		Text		= "";
+			public	string		SubText	= "";
 			public	Sprite		Icon		= null;
 			public	int				Index		= -1;
 
-			public	StartingListItem(string strValue, string strText, Sprite imgSprite = null)
+			public	StartingListItem(string strValue, string strText, Sprite imgSprite = null, string strSub = "")
 			{
-				Value = strValue;
-				Text	= strText;
-				Icon	= imgSprite;
+				Value		= strValue;
+				Text		= strText;
+				SubText	= strSub;
+				Icon		= imgSprite;
 			}
 		}
 
@@ -373,18 +378,19 @@ public	class						ListBoxControl : MonoBehaviour
 		#region "LIST BOX STARTING ITEMS"
 
 			// -- ADD ITEM TO STARTING LIST
-			public	void			AddStartItem(string strValue, string strText, Sprite sprIcon = null)
+			public	void			AddStartItem(string strValue, string strText, Sprite sprIcon = null, string strSub = "")
 			{
 				int i = StartArray.FindIndex(x => x.Value.ToLower() == strValue.ToLower() || x.Text.ToLower() == strText.ToLower());
 				if (i >= 0)
 				{
 					// OVERWRITE EXISTING ITEM
-					StartArray[i].Value = strValue;
-					StartArray[i].Text	= strText;
-					StartArray[i].Icon	= sprIcon;
-					StartArray[i].Index	= i;
+					StartArray[i].Value		= strValue;
+					StartArray[i].Text		= strText;
+					StartArray[i].Icon		= sprIcon;
+					StartArray[i].SubText	= strSub;
+					StartArray[i].Index		= i;
 				} else {
-					StartArray.Add(new StartingListItem(strValue, strText, sprIcon));
+					StartArray.Add(new StartingListItem(strValue, strText, sprIcon, strSub));
 					StartArray[StartArray.Count - 1].Index = StartArray.Count - 1;
 				}
 			}
@@ -437,6 +443,14 @@ public	class						ListBoxControl : MonoBehaviour
 					StartArray[i].Index = i;
 				}
 			}
+			public	void			SortStartBySub()
+			{
+				StartArray.Sort((p1, p2) => p1.SubText.CompareTo(p2.Text));
+				for (int i = 0; i < StartArray.Count; i++)
+				{
+					StartArray[i].Index = i;
+				}
+			}
 
 		#endregion
 
@@ -459,7 +473,7 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 
 			// -- ADD ITEM TO LISTBOX
-			public	void			AddItem(string		strValue,	string strText, string strIcon = "")
+			public	void			AddItem(string		strValue,	string strText, string strIcon = "",	string	strSub = "")
 			{
 				// CALCULATE ICON SPRITE
 				Sprite sprIcon = null;
@@ -472,8 +486,9 @@ public	class						ListBoxControl : MonoBehaviour
 				if (i >= 0)
 				{
 					// ITEM ALREADY EXISTS -- UPDATE IT
-					Items[i].Value	= strValue;
-					Items[i].Text		= strText;
+					Items[i].Value		= strValue;
+					Items[i].Text			= strText;
+					Items[i].SubText	= strSub;
 					Items[i].SetIcon(sprIcon);
 				} else {
 					// ITEM DOES NOT EXIST -- CREATE IT
@@ -494,20 +509,22 @@ public	class						ListBoxControl : MonoBehaviour
 					go.GetComponent<ListBoxLineItem>().ItemDisabledColor		= ItemDisabledColor;
 					go.GetComponent<ListBoxLineItem>().Value								= strValue;
 					go.GetComponent<ListBoxLineItem>().Text									= strText;
+					go.GetComponent<ListBoxLineItem>().SubText							= strSub;
 					go.GetComponent<ListBoxLineItem>().SetIcon(sprIcon);
 					go.GetComponent<ListBoxLineItem>().AutoSize();
 					Items.Add(go.GetComponent<ListBoxLineItem>());
 					ResizeContainer();
 				}
 			}
-			public	void			AddItem(string		strValue,	string strText, Sprite sprIcon)
+			public	void			AddItem(string		strValue,	string strText, Sprite sprIcon,				string	strSub = "")
 			{
 				int i = Items.FindIndex(x => x.Value.ToLower() == strValue.ToLower() || x.Text.ToLower() == strText.ToLower());
 				if (i >= 0)
 				{
 					// ITEM ALREADY EXISTS -- UPDATE IT
-					Items[i].Value	= strValue;
-					Items[i].Text		= strText;
+					Items[i].Value		= strValue;
+					Items[i].Text			= strText;
+					Items[i].SubText	= strSub;
 					Items[i].SetIcon(sprIcon);
 				} else {
 					// ITEM DOES NOT EXIST -- CREATE IT
@@ -528,12 +545,31 @@ public	class						ListBoxControl : MonoBehaviour
 					go.GetComponent<ListBoxLineItem>().ItemDisabledColor		= ItemDisabledColor;
 					go.GetComponent<ListBoxLineItem>().Value								= strValue;
 					go.GetComponent<ListBoxLineItem>().Text									= strText;
+					go.GetComponent<ListBoxLineItem>().SubText							= strSub;
 					go.GetComponent<ListBoxLineItem>().SetIcon(sprIcon);
 					go.GetComponent<ListBoxLineItem>().AutoSize();
 					Items.Add(go.GetComponent<ListBoxLineItem>());
 					ResizeContainer();
 				}
 			}
+
+			public	void			AddItem(string		strValue,	string strText, string strIcon, int			intSub)
+			{
+				AddItem(strValue, strText, strIcon, intSub.ToString());
+			}
+			public	void			AddItem(string		strValue,	string strText, string strIcon, float		fSub)
+			{
+				AddItem(strValue, strText, strIcon, fSub.ToString());
+			}
+			public	void			AddItem(string		strValue,	string strText, Sprite sprIcon, int			intSub)
+			{
+				AddItem(strValue, strText, sprIcon, intSub.ToString());
+			}
+			public	void			AddItem(string		strValue,	string strText, Sprite sprIcon, float		fSub)
+			{
+				AddItem(strValue, strText, sprIcon, fSub.ToString());
+			}
+
 			public	void			AddItem(string[]	strValue,	string strText)
 			{
 				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
@@ -556,6 +592,39 @@ public	class						ListBoxControl : MonoBehaviour
 					AddItem(strNewVal, strText, strIcon);
 				}
 			}
+			public	void			AddItem(string[]	strValue,	string strText, string strIcon, string	strSub)
+			{
+				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
+				{
+					string strNewVal = "";
+					for (int i = 0; i < strValue.Length; i++)
+						strNewVal += "|" + strValue[i];
+					strNewVal = strNewVal.Substring(1);
+					AddItem(strNewVal, strText, strIcon, strSub);
+				}
+			}
+			public	void			AddItem(string[]	strValue,	string strText, string strIcon, int			intSub)
+			{
+				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
+				{
+					string strNewVal = "";
+					for (int i = 0; i < strValue.Length; i++)
+						strNewVal += "|" + strValue[i];
+					strNewVal = strNewVal.Substring(1);
+					AddItem(strNewVal, strText, strIcon, intSub.ToString());
+				}
+			}
+			public	void			AddItem(string[]	strValue,	string strText, string strIcon, float		fSub)
+			{
+				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
+				{
+					string strNewVal = "";
+					for (int i = 0; i < strValue.Length; i++)
+						strNewVal += "|" + strValue[i];
+					strNewVal = strNewVal.Substring(1);
+					AddItem(strNewVal, strText, strIcon, fSub.ToString());
+				}
+			}
 			public	void			AddItem(string[]	strValue,	string strText, Sprite sprIcon)
 			{
 				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
@@ -567,6 +636,40 @@ public	class						ListBoxControl : MonoBehaviour
 					AddItem(strNewVal, strText, sprIcon);
 				}
 			}
+			public	void			AddItem(string[]	strValue,	string strText, Sprite sprIcon, string	strSub)
+			{
+				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
+				{
+					string strNewVal = "";
+					for (int i = 0; i < strValue.Length; i++)
+						strNewVal += "|" + strValue[i];
+					strNewVal = strNewVal.Substring(1);
+					AddItem(strNewVal, strText, sprIcon, strSub);
+				}
+			}
+			public	void			AddItem(string[]	strValue,	string strText, Sprite sprIcon, int			intSub)
+			{
+				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
+				{
+					string strNewVal = "";
+					for (int i = 0; i < strValue.Length; i++)
+						strNewVal += "|" + strValue[i];
+					strNewVal = strNewVal.Substring(1);
+					AddItem(strNewVal, strText, sprIcon, intSub.ToString());
+				}
+			}
+			public	void			AddItem(string[]	strValue,	string strText, Sprite sprIcon, float		fSub)
+			{
+				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
+				{
+					string strNewVal = "";
+					for (int i = 0; i < strValue.Length; i++)
+						strNewVal += "|" + strValue[i];
+					strNewVal = strNewVal.Substring(1);
+					AddItem(strNewVal, strText, sprIcon, fSub.ToString());
+				}
+			}
+
 			public	void			AddItem(int				intValue,	string strText)
 			{
 				AddItem(intValue.ToString(), strText);
@@ -575,9 +678,33 @@ public	class						ListBoxControl : MonoBehaviour
 			{
 				AddItem(intValue.ToString(), strText, strIcon);
 			}
+			public	void			AddItem(int				intValue,	string strText, string strIcon, string	strSub)
+			{
+				AddItem(intValue.ToString(), strText, strIcon, strSub);
+			}
+			public	void			AddItem(int				intValue,	string strText, string strIcon, int			intSub)
+			{
+				AddItem(intValue.ToString(), strText, strIcon, intSub.ToString());
+			}
+			public	void			AddItem(int				intValue,	string strText, string strIcon, float		fSub)
+			{
+				AddItem(intValue.ToString(), strText, strIcon, fSub.ToString());
+			}
 			public	void			AddItem(int				intValue,	string strText, Sprite sprIcon)
 			{
 				AddItem(intValue.ToString(), strText, sprIcon);
+			}
+			public	void			AddItem(int				intValue,	string strText, Sprite sprIcon, string	strSub)
+			{
+				AddItem(intValue.ToString(), strText, sprIcon, strSub);
+			}
+			public	void			AddItem(int				intValue,	string strText, Sprite sprIcon, int			intSub)
+			{
+				AddItem(intValue.ToString(), strText, sprIcon, intSub.ToString());
+			}
+			public	void			AddItem(int				intValue,	string strText, Sprite sprIcon, float		fSub)
+			{
+				AddItem(intValue.ToString(), strText, sprIcon, fSub.ToString());
 			}
 
 			// -- REMOVE ITEM FROM LISTBOX
@@ -634,6 +761,15 @@ public	class						ListBoxControl : MonoBehaviour
 			public	void			SortByValue()
 			{
 				Items.Sort((p1, p2) => p1.Text.CompareTo(p2.Value));
+				for (int i = 0; i < Items.Count; i++)
+				{ 
+					Items[i].Index = i;
+					Items[i].AutoSize();
+				}
+			}
+			public	void			SortBySubText()
+			{
+				Items.Sort((p1, p2) => p1.SubText.CompareTo(p2.Value));
 				for (int i = 0; i < Items.Count; i++)
 				{ 
 					Items[i].Index = i;
@@ -720,6 +856,22 @@ public	class						ListBoxControl : MonoBehaviour
 				SetItemTextByValue(intValue.ToString(), strNewText);
 			}
 
+			// -- SET LISTBOX ITEM SUBTEXT
+			public	void			SetItemSubTextByIndex(int		intIndex, string strNewText)
+			{
+				Items[intIndex].SubText = strNewText;
+			}
+			public	void			SetItemSubTextByValue(string strValue, string strNewText)
+			{
+				int i = Items.FindIndex(x => x.Value == strValue);
+				if (i >= 0)
+					SetItemSubTextByIndex(i, strNewText);
+			}
+			public	void			SetItemSubTextByValue(int		intValue, string strNewText)
+			{
+				SetItemSubTextByValue(intValue.ToString(), strNewText);
+			}
+
 			// -- CHANGE ITEM ORDER
 			public	bool			MoveItemUp(		int				intIndex)
 			{
@@ -784,7 +936,7 @@ public	class						ListBoxControl : MonoBehaviour
 				return true;
 			}
 
-			// -- GET LISTBOX ITEM VALUE / TEXT
+			// -- GET LISTBOX ITEM VALUE
 			public	string		GetValueByText(string		strText)
 			{
 				int i = Items.FindIndex(x => x.Text.ToLower() == strText.Trim().ToLower());
@@ -805,6 +957,8 @@ public	class						ListBoxControl : MonoBehaviour
 					return -1;
 				return Util.ConvertToInt(Items[intIndex].Value);
 			}
+
+			// -- GET LISTBOX ITEM TEXT
 			public	string		GetTextByValue(string		strvalue)
 			{
 				int i = Items.FindIndex(x => x.Value.ToLower() == strvalue.Trim().ToLower());
@@ -826,6 +980,30 @@ public	class						ListBoxControl : MonoBehaviour
 				if (intIndex < 0 || intIndex >= Items.Count)
 					return "";
 				return Items[intIndex].Text;
+			}
+
+			// -- GET LISTBOX ITEM SUBTEXT
+			public	string		GetSubTextByValue(string		strvalue)
+			{
+				int i = Items.FindIndex(x => x.Value.ToLower() == strvalue.Trim().ToLower());
+				if (i < 0)
+					return "";
+				else
+					return Items[i].SubText;
+			}
+			public	string		GetSubTextByValue(int			intValue)
+			{
+				return GetSubTextByValue(intValue.ToString());
+			}
+			public	string		GetSubTextByValue(float		fValue)
+			{
+				return GetSubTextByValue(fValue.ToString());
+			}
+			public	string		GetSubTextByIndex(int			intIndex)
+			{
+				if (intIndex < 0 || intIndex >= Items.Count)
+					return "";
+				return Items[intIndex].SubText;
 			}
 
 			// -- HANDLE SELECTION (SET LISTBOX ITEM SELECTED)
@@ -914,9 +1092,3 @@ public	class						ListBoxControl : MonoBehaviour
 	#endregion
 
 }
-
-
-
-
-//		LBcontrol.AddItem(new string []{"0", "None", "Backstep", "3.141562"}, "-- None --");
-
