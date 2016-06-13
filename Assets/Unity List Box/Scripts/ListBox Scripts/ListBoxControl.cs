@@ -53,19 +53,24 @@ public	class						ListBoxControl : MonoBehaviour
 
 	#region "PRIVATE VARIABLES"
 
+		// SERIALIZED FIELDS
 		[SerializeField]
-		private List<StartingListItem>		_startArray				= new List<StartingListItem>();
+		protected		List<StartingListItem>	_startArray				= new List<StartingListItem>();
 		[SerializeField]
-		private string										_strTitle					= "";
+		private string											_strTitle					= "";
 		[SerializeField]
-		private bool											_blnBestFit				= false;
+		private bool												_blnBestFit				= false;
+		[SerializeField]
+		private bool												_blnPartOfDDL			= false;
 
-		private List<ListBoxLineItem>			_items						= new List<ListBoxLineItem>();
-		private RectTransform							_rtContainer			= null;
-		private RectTransform							_rtScrollRect			= null;
-		private int												_intSelectedItem	= -1;
-		private List<int>									_intSelectedList	= new List<int>();
-		private bool											_blnInitialized		= false;
+		private ListBoxModes								_lbMode						= ListBoxModes.ListBox;
+		private List<ListBoxLineItem>				_items						= new List<ListBoxLineItem>();
+		private RectTransform								_rtContainer			= null;
+		private RectTransform								_rtScrollRect			= null;
+		private int													_intSelectedItem	= -1;
+		private List<int>										_intSelectedList	= new List<int>();
+
+		protected	bool											_blnInitialized		= false;
 
 	#endregion
 
@@ -111,6 +116,23 @@ public	class						ListBoxControl : MonoBehaviour
 		public		float										Height							= 36;
 		public		float										Spacing							=  4;
 
+	#endregion
+
+	#region "PUBLIC PROPERTIES"
+
+		public		enum										ListBoxModes : int { ListBox = 0, DropDownList = 1 }
+		public		ListBoxModes						ListBoxMode
+		{
+			get
+			{
+				return _lbMode;
+			}
+			set
+			{
+				_lbMode = value;
+			}
+		}
+
 		// HANDLE LISTBOX TITLE
 		public		string									Title
 		{
@@ -121,7 +143,7 @@ public	class						ListBoxControl : MonoBehaviour
 			set
 			{
 				_strTitle = value.Trim();
-				if (ListBoxTitle != null)
+				if (ListBoxMode == ListBoxModes.ListBox && ListBoxTitle != null)
 						ListBoxTitle.text = _strTitle;
 			}
 		}
@@ -134,8 +156,19 @@ public	class						ListBoxControl : MonoBehaviour
 			set
 			{
 				_blnBestFit = value;
-				if (ListBoxTitle != null)
+				if (ListBoxMode == ListBoxModes.ListBox && ListBoxTitle != null)
 						ListBoxTitle.resizeTextForBestFit = _blnBestFit;
+			}
+		}
+		public		bool										PartOfDDL
+		{
+			get
+			{
+				return _blnPartOfDDL;
+			}
+			set
+			{
+				_blnPartOfDDL = value;
 			}
 		}
 
@@ -149,7 +182,7 @@ public	class						ListBoxControl : MonoBehaviour
 		}
 
 		// HANDLE SELECTION (GET)
-		public		List<ListBoxLineItem>		Items
+		public		virtual	List<ListBoxLineItem>		Items
 		{
 			get
 			{
@@ -158,7 +191,7 @@ public	class						ListBoxControl : MonoBehaviour
 				return _items;
 			}
 		}
-		public		List<int>								SelectedIndexes
+		public		virtual	List<int>				SelectedIndexes
 		{
 			get
 			{
@@ -167,7 +200,7 @@ public	class						ListBoxControl : MonoBehaviour
 				return _intSelectedList;
 			}
 		}
-		public		List<string>						SelectedValues
+		public		virtual	List<string>		SelectedValues
 		{
 			get
 			{
@@ -179,7 +212,7 @@ public	class						ListBoxControl : MonoBehaviour
 				return st;
 			}
 		}
-		public		string									SelectedValue
+		public		virtual	string					SelectedValue
 		{
 			get
 			{
@@ -188,13 +221,13 @@ public	class						ListBoxControl : MonoBehaviour
 				return Items[_intSelectedList[0]].Value;
 			}
 		}
-		public		string									SelectedArrayValue(int intIndex)
+		public		virtual	string					SelectedArrayValue(int intIndex)
 		{
 			if (intIndex > Items[_intSelectedList[0]].Value.Split('|').Length - 1)
 				return "";
 			return Items[_intSelectedList[0]].Value.Split('|')[intIndex];
 		}
-		public		int											SelectedValueInt
+		public		virtual	int							SelectedValueInt
 		{
 			get
 			{
@@ -203,11 +236,11 @@ public	class						ListBoxControl : MonoBehaviour
 				return Util.ConvertToInt(Items[_intSelectedList[0]].Value);
 			}
 		}
-		public		int											SelectedArrayValueInt(int intIndex)
+		public		virtual	int							SelectedArrayValueInt(int intIndex)
 		{
 			return Util.ConvertToInt(SelectedArrayValue(intIndex));
 		}
-		public		int											SelectedIndex
+		public		virtual	int							SelectedIndex
 		{
 			get
 			{
@@ -238,20 +271,33 @@ public	class						ListBoxControl : MonoBehaviour
 			_items						= new List<ListBoxLineItem>();
 			_intSelectedList	= new List<int>();
 
+			// EXIT IF THIS IS A DROPDOWN LIST
+			if (ListBoxMode == ListBoxModes.DropDownList)
+				return;
+
 			// REMOVE ANY GAMEOBJECTS IN THE CONTAINER
-			if (ScrollContainerObject.transform.childCount > 0)
-			{
-				for (int i = ScrollContainerObject.transform.childCount - 1; i >= 0; i--)
-					Destroy(ScrollContainerObject.transform.GetChild(i).gameObject);
+			if (ScrollContainerObject != null)
+			{ 
+				if (ScrollContainerObject.transform.childCount > 0)
+				{
+					for (int i = ScrollContainerObject.transform.childCount - 1; i >= 0; i--)
+						Destroy(ScrollContainerObject.transform.GetChild(i).gameObject);
+				}
 			}
 		}
 		private void			Start()
 		{
+			// EXIT IF THIS IS A DROPDOWN LIST
+			if (ListBoxMode == ListBoxModes.DropDownList)
+				return;
+
 			// RESIZE THE ITEM CONTAINER TO THE WIDTH OF THE SCROLL RECT
-			ContainerRect.sizeDelta = gameObject.GetComponent<RectTransform>().sizeDelta + ScrollRect.sizeDelta;
-			
+			if (ContainerRect != null)
+					ContainerRect.sizeDelta = new Vector2(ScrollRect.rect.width, ScrollRect.rect.height);
+
 			// SET SCROLLBAR SENSITIVITY
-			ScrollRectObject.GetComponent<ScrollRect>().scrollSensitivity = Height;
+			if (ScrollRectObject != null)
+					ScrollRectObject.GetComponent<ScrollRect>().scrollSensitivity = Height - Spacing;
 
 			// ADD INITIAL LIST ITEMS (IF THERE ARE ANY)
 			if (StartArray.Count > 0)
@@ -268,12 +314,13 @@ public	class						ListBoxControl : MonoBehaviour
 		private void			OnEnable()
 		{
 			// MAKE SURE THAT THE LIST BOX ITEM CONTAINER IS PROPERLY SIZED (HEIGHT)
-			UpdateListBoxContainerSize();
+			if (ListBoxMode == ListBoxModes.ListBox)
+				UpdateListBoxContainerSize();
 		}
 
 		private void			ResizeContainer()
 		{
-			if (!Application.isPlaying)
+			if (!Application.isPlaying || ListBoxMode == ListBoxModes.DropDownList)
 				return;
 
 			float fScroll = 1; 
@@ -310,6 +357,9 @@ public	class						ListBoxControl : MonoBehaviour
 
 		private void			UnSelectItem(		int intIndex)
 		{
+			if (ListBoxMode == ListBoxModes.DropDownList)
+				return;
+
 			// UNSELECT SINGLE ITEM
 			if (intIndex >= 0 && intIndex == _intSelectedItem && Items[intIndex] != null)
 			{ 
@@ -330,6 +380,9 @@ public	class						ListBoxControl : MonoBehaviour
 		}
 		private void			UnSelectByRange(int intEnd)
 		{
+			if (ListBoxMode == ListBoxModes.DropDownList)
+				return;
+
 			int s = (int)Mathf.Sign(intEnd - _intSelectedItem);
 			int i = _intSelectedItem;
 			int e = intEnd;
@@ -343,6 +396,9 @@ public	class						ListBoxControl : MonoBehaviour
 		}
 		private void			UnSelectAllItems()
 		{
+			if (ListBoxMode == ListBoxModes.DropDownList)
+				return;
+
 			// UNSELECT SINGLE ITEM
 			if (_intSelectedItem >= 0 && Items[_intSelectedItem] != null)
 				Items[_intSelectedItem].UnSelect();
@@ -360,7 +416,7 @@ public	class						ListBoxControl : MonoBehaviour
 
 		private IEnumerator		SetScroll(float fValue)
 		{
-			if (ScrollBarObject != null && ScrollBarObject.activeSelf)
+			if (ListBoxMode == ListBoxModes.ListBox && ScrollBarObject != null && ScrollBarObject.activeSelf)
 			{
 				yield return new WaitForSeconds(0.12f);
 				ScrollBarObject.GetComponent<Scrollbar>().value = 0;
@@ -377,8 +433,22 @@ public	class						ListBoxControl : MonoBehaviour
 	
 		#region "LIST BOX STARTING ITEMS"
 
+			// -- CLEAR STARTING LIST
+			public					void			ClearStartItems()
+			{
+				_startArray = new List<StartingListItem>();
+			}
+			public					void			InitStartItems(List<StartingListItem> sli)
+			{
+				ClearStartItems();
+				foreach (StartingListItem s in sli)
+				{
+					_startArray.Add(s);
+				}
+			}
+
 			// -- ADD ITEM TO STARTING LIST
-			public	void			AddStartItem(string strValue, string strText, Sprite sprIcon = null, string strSub = "")
+			public	virtual	void			AddStartItem(string strValue, string strText, Sprite sprIcon = null, string strSub = "")
 			{
 				int i = StartArray.FindIndex(x => x.Value.ToLower() == strValue.ToLower() || x.Text.ToLower() == strText.ToLower());
 				if (i >= 0)
@@ -396,7 +466,7 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 
 			// -- REMOVE ITEM FROM STARTING LIST
-			public	void			RemoveStartItemByIndex(int		intIndex)
+			public	virtual	void			RemoveStartItemByIndex(int		intIndex)
 			{
 				if (intIndex < 0 || intIndex >= StartArray.Count)
 					return;
@@ -413,13 +483,13 @@ public	class						ListBoxControl : MonoBehaviour
 					}
 				}
 			}
-			public	void			RemoveStartItemByValue(string	strValue)
+			public	virtual	void			RemoveStartItemByValue(string	strValue)
 			{
 				int i = StartArray.FindIndex(x => x.Value.ToLower() == strValue.ToLower());
 				if (i >= 0)
 					RemoveStartItemByIndex(i);
 			}
-			public	void			RemoveStartItemByText(	string	strText)
+			public	virtual	void			RemoveStartItemByText(	string	strText)
 			{
 				int i = StartArray.FindIndex(x => x.Text.ToLower() == strText.ToLower());
 				if (i >= 0)
@@ -427,7 +497,7 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 
 			// -- SORT ITEMS IN STARTING LIST
-			public	void			SortStartByValue()
+			public	virtual	void			SortStartByValue()
 			{
 				StartArray.Sort((p1, p2) => p1.Text.CompareTo(p2.Value));
 				for (int i = 0; i < StartArray.Count; i++)
@@ -435,7 +505,7 @@ public	class						ListBoxControl : MonoBehaviour
 					StartArray[i].Index = i;
 				}
 			}
-			public	void			SortStartByText()
+			public	virtual	void			SortStartByText()
 			{
 				StartArray.Sort((p1, p2) => p1.Text.CompareTo(p2.Text));
 				for (int i = 0; i < StartArray.Count; i++)
@@ -443,7 +513,7 @@ public	class						ListBoxControl : MonoBehaviour
 					StartArray[i].Index = i;
 				}
 			}
-			public	void			SortStartBySub()
+			public	virtual	void			SortStartBySub()
 			{
 				StartArray.Sort((p1, p2) => p1.SubText.CompareTo(p2.Text));
 				for (int i = 0; i < StartArray.Count; i++)
@@ -457,7 +527,7 @@ public	class						ListBoxControl : MonoBehaviour
 		#region "LIST BOX ITEMS"
 
 			// HANDLE LISTBOX ITEMS
-			public	void			Clear()
+			public	virtual	void			Clear()
 			{
 				// INITIALIZE THE ITEM LIST
 				_intSelectedItem = -1;
@@ -473,7 +543,7 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 
 			// -- ADD ITEM TO LISTBOX
-			public	void			AddItem(string		strValue,	string strText, string strIcon = "",	string	strSub = "")
+			public	virtual	void			AddItem(string		strValue,	string strText, string strIcon = "",	string	strSub = "")
 			{
 				// CALCULATE ICON SPRITE
 				Sprite sprIcon = null;
@@ -516,7 +586,7 @@ public	class						ListBoxControl : MonoBehaviour
 					ResizeContainer();
 				}
 			}
-			public	void			AddItem(string		strValue,	string strText, Sprite sprIcon,				string	strSub = "")
+			public	virtual	void			AddItem(string		strValue,	string strText, Sprite sprIcon,				string	strSub = "")
 			{
 				int i = Items.FindIndex(x => x.Value.ToLower() == strValue.ToLower() || x.Text.ToLower() == strText.ToLower());
 				if (i >= 0)
@@ -553,24 +623,24 @@ public	class						ListBoxControl : MonoBehaviour
 				}
 			}
 
-			public	void			AddItem(string		strValue,	string strText, string strIcon, int			intSub)
+			public	virtual	void			AddItem(string		strValue,	string strText, string strIcon, int			intSub)
 			{
 				AddItem(strValue, strText, strIcon, intSub.ToString());
 			}
-			public	void			AddItem(string		strValue,	string strText, string strIcon, float		fSub)
+			public	virtual	void			AddItem(string		strValue,	string strText, string strIcon, float		fSub)
 			{
 				AddItem(strValue, strText, strIcon, fSub.ToString());
 			}
-			public	void			AddItem(string		strValue,	string strText, Sprite sprIcon, int			intSub)
+			public	virtual	void			AddItem(string		strValue,	string strText, Sprite sprIcon, int			intSub)
 			{
 				AddItem(strValue, strText, sprIcon, intSub.ToString());
 			}
-			public	void			AddItem(string		strValue,	string strText, Sprite sprIcon, float		fSub)
+			public	virtual	void			AddItem(string		strValue,	string strText, Sprite sprIcon, float		fSub)
 			{
 				AddItem(strValue, strText, sprIcon, fSub.ToString());
 			}
 
-			public	void			AddItem(string[]	strValue,	string strText)
+			public	virtual	void			AddItem(string[]	strValue,	string strText)
 			{
 				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
 				{
@@ -581,7 +651,7 @@ public	class						ListBoxControl : MonoBehaviour
 					AddItem(strNewVal, strText);
 				}
 			}
-			public	void			AddItem(string[]	strValue,	string strText, string strIcon)
+			public	virtual	void			AddItem(string[]	strValue,	string strText, string strIcon)
 			{
 				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
 				{
@@ -592,7 +662,7 @@ public	class						ListBoxControl : MonoBehaviour
 					AddItem(strNewVal, strText, strIcon);
 				}
 			}
-			public	void			AddItem(string[]	strValue,	string strText, string strIcon, string	strSub)
+			public	virtual	void			AddItem(string[]	strValue,	string strText, string strIcon, string	strSub)
 			{
 				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
 				{
@@ -603,7 +673,7 @@ public	class						ListBoxControl : MonoBehaviour
 					AddItem(strNewVal, strText, strIcon, strSub);
 				}
 			}
-			public	void			AddItem(string[]	strValue,	string strText, string strIcon, int			intSub)
+			public	virtual	void			AddItem(string[]	strValue,	string strText, string strIcon, int			intSub)
 			{
 				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
 				{
@@ -614,7 +684,7 @@ public	class						ListBoxControl : MonoBehaviour
 					AddItem(strNewVal, strText, strIcon, intSub.ToString());
 				}
 			}
-			public	void			AddItem(string[]	strValue,	string strText, string strIcon, float		fSub)
+			public	virtual	void			AddItem(string[]	strValue,	string strText, string strIcon, float		fSub)
 			{
 				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
 				{
@@ -625,7 +695,7 @@ public	class						ListBoxControl : MonoBehaviour
 					AddItem(strNewVal, strText, strIcon, fSub.ToString());
 				}
 			}
-			public	void			AddItem(string[]	strValue,	string strText, Sprite sprIcon)
+			public	virtual	void			AddItem(string[]	strValue,	string strText, Sprite sprIcon)
 			{
 				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
 				{
@@ -636,7 +706,7 @@ public	class						ListBoxControl : MonoBehaviour
 					AddItem(strNewVal, strText, sprIcon);
 				}
 			}
-			public	void			AddItem(string[]	strValue,	string strText, Sprite sprIcon, string	strSub)
+			public	virtual	void			AddItem(string[]	strValue,	string strText, Sprite sprIcon, string	strSub)
 			{
 				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
 				{
@@ -647,7 +717,7 @@ public	class						ListBoxControl : MonoBehaviour
 					AddItem(strNewVal, strText, sprIcon, strSub);
 				}
 			}
-			public	void			AddItem(string[]	strValue,	string strText, Sprite sprIcon, int			intSub)
+			public	virtual	void			AddItem(string[]	strValue,	string strText, Sprite sprIcon, int			intSub)
 			{
 				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
 				{
@@ -658,7 +728,7 @@ public	class						ListBoxControl : MonoBehaviour
 					AddItem(strNewVal, strText, sprIcon, intSub.ToString());
 				}
 			}
-			public	void			AddItem(string[]	strValue,	string strText, Sprite sprIcon, float		fSub)
+			public	virtual	void			AddItem(string[]	strValue,	string strText, Sprite sprIcon, float		fSub)
 			{
 				if (strValue != null && strValue.Length > 0 && strText.Trim() != "")
 				{
@@ -670,45 +740,45 @@ public	class						ListBoxControl : MonoBehaviour
 				}
 			}
 
-			public	void			AddItem(int				intValue,	string strText)
+			public	virtual	void			AddItem(int				intValue,	string strText)
 			{
 				AddItem(intValue.ToString(), strText);
 			}
-			public	void			AddItem(int				intValue,	string strText, string strIcon)
+			public	virtual	void			AddItem(int				intValue,	string strText, string strIcon)
 			{
 				AddItem(intValue.ToString(), strText, strIcon);
 			}
-			public	void			AddItem(int				intValue,	string strText, string strIcon, string	strSub)
+			public	virtual	void			AddItem(int				intValue,	string strText, string strIcon, string	strSub)
 			{
 				AddItem(intValue.ToString(), strText, strIcon, strSub);
 			}
-			public	void			AddItem(int				intValue,	string strText, string strIcon, int			intSub)
+			public	virtual	void			AddItem(int				intValue,	string strText, string strIcon, int			intSub)
 			{
 				AddItem(intValue.ToString(), strText, strIcon, intSub.ToString());
 			}
-			public	void			AddItem(int				intValue,	string strText, string strIcon, float		fSub)
+			public	virtual	void			AddItem(int				intValue,	string strText, string strIcon, float		fSub)
 			{
 				AddItem(intValue.ToString(), strText, strIcon, fSub.ToString());
 			}
-			public	void			AddItem(int				intValue,	string strText, Sprite sprIcon)
+			public	virtual	void			AddItem(int				intValue,	string strText, Sprite sprIcon)
 			{
 				AddItem(intValue.ToString(), strText, sprIcon);
 			}
-			public	void			AddItem(int				intValue,	string strText, Sprite sprIcon, string	strSub)
+			public	virtual	void			AddItem(int				intValue,	string strText, Sprite sprIcon, string	strSub)
 			{
 				AddItem(intValue.ToString(), strText, sprIcon, strSub);
 			}
-			public	void			AddItem(int				intValue,	string strText, Sprite sprIcon, int			intSub)
+			public	virtual	void			AddItem(int				intValue,	string strText, Sprite sprIcon, int			intSub)
 			{
 				AddItem(intValue.ToString(), strText, sprIcon, intSub.ToString());
 			}
-			public	void			AddItem(int				intValue,	string strText, Sprite sprIcon, float		fSub)
+			public	virtual	void			AddItem(int				intValue,	string strText, Sprite sprIcon, float		fSub)
 			{
 				AddItem(intValue.ToString(), strText, sprIcon, fSub.ToString());
 			}
 
 			// -- REMOVE ITEM FROM LISTBOX
-			public	void			RemoveItemByIndex(int			intIndex)
+			public	virtual	void			RemoveItemByIndex(int			intIndex)
 			{
 				if (intIndex < 0 || intIndex >= Items.Count)
 					return;
@@ -731,13 +801,13 @@ public	class						ListBoxControl : MonoBehaviour
 				_intSelectedList = new List<int>();
 				ResizeContainer();
 			}
-			public	void			RemoveItemByValue(string	strValue)
+			public	virtual	void			RemoveItemByValue(string	strValue)
 			{
 				int i = Items.FindIndex(x => x.Value.ToLower() == strValue.ToLower());
 				if (i >= 0)
 					RemoveItemByIndex(i);
 			}
-			public	void			RemoveItemByText(	string	strText)
+			public	virtual	void			RemoveItemByText(	string	strText)
 			{
 				int i = Items.FindIndex(x => x.Text.ToLower() == strText.ToLower());
 				if (i >= 0)
@@ -745,11 +815,11 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 
 			// -- SORT LISTBOX ITEMS
-			public	void			Sort()
+			public	virtual	void			Sort()
 			{
 				SortByText();
 			}
-			public	void			SortByText()
+			public	virtual	void			SortByText()
 			{
 				Items.Sort((p1, p2) => p1.Text.CompareTo(p2.Text));
 				for (int i = 0; i < Items.Count; i++)
@@ -758,7 +828,7 @@ public	class						ListBoxControl : MonoBehaviour
 					Items[i].AutoSize();
 				}
 			}
-			public	void			SortByValue()
+			public	virtual	void			SortByValue()
 			{
 				Items.Sort((p1, p2) => p1.Text.CompareTo(p2.Value));
 				for (int i = 0; i < Items.Count; i++)
@@ -767,7 +837,7 @@ public	class						ListBoxControl : MonoBehaviour
 					Items[i].AutoSize();
 				}
 			}
-			public	void			SortBySubText()
+			public	virtual	void			SortBySubText()
 			{
 				Items.Sort((p1, p2) => p1.SubText.CompareTo(p2.Value));
 				for (int i = 0; i < Items.Count; i++)
@@ -778,102 +848,102 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 
 			// -- SET LISTBOX SCROLLBAR POSITION
-			public	void			SetToTop()
+			public	virtual	void			SetToTop()
 			{
 				if (gameObject.activeSelf)
 					StartCoroutine(SetScroll(1));
 			}
-			public	void			SetToBottom()
+			public	virtual	void			SetToBottom()
 			{
 				StartCoroutine(SetScroll(0));
 			}
 
 			// -- CHECK FOR LISTBOX ITEM WITH VALUE
-			public	bool			HasItemWithValue(string strValue)
+			public	virtual	bool			HasItemWithValue(string strValue)
 			{
 				return Items.FindIndex(x => x.Value.Trim().ToLower() == strValue.Trim().ToLower()) >= 0;
 			}
-			public	bool			HasItemWithValue(int		intValue)
+			public	virtual	bool			HasItemWithValue(int		intValue)
 			{
 				return HasItemWithValue(intValue.ToString());
 			}
-			public	bool			HasItemWithValue(float	fValue)
+			public	virtual	bool			HasItemWithValue(float	fValue)
 			{
 				return HasItemWithValue(fValue.ToString());
 			}
 
 			// -- ENABLE ONCLICK FOR LISTBOX ITEM (ALSO ADJUSTS ITEM STYLE)
-			public	void			EnableByIndex(int				intIndex)
+			public	virtual	void			EnableByIndex(int				intIndex)
 			{
-				if (intIndex >= 0)
+				if (intIndex >= 0 && intIndex < Items.Count)
 					Items[intIndex].Enabled = true;
 			}
-			public	void			EnableByValue(string		strValue)
+			public	virtual	void			EnableByValue(string		strValue)
 			{
 				EnableByIndex(Items.FindIndex(x => x.Value.ToLower() == strValue.ToLower()));
 			}
-			public	void			EnableByValue(int				intValue)
+			public	virtual	void			EnableByValue(int				intValue)
 			{
 				EnableByIndex(Items.FindIndex(x => x.Value.ToLower() == intValue.ToString().ToLower()));
 			}
-			public	void			EnableByText(string			strText)
+			public	virtual	void			EnableByText(string			strText)
 			{
 				EnableByIndex(Items.FindIndex(x => x.Text.ToLower() == strText.ToLower()));
 			}
 
 			// -- DISABLE ONCLICK FOR LISTBOX ITEM (ALSO ADJUSTS ITEM STYLE)
-			public	void			DisableByIndex(int			intIndex)
+			public	virtual	void			DisableByIndex(int			intIndex)
 			{
-				if (intIndex >= 0)
+				if (intIndex >= 0 && intIndex < Items.Count)
 					Items[intIndex].Enabled = false;
 			}
-			public	void			DisableByValue(string		strValue)
+			public	virtual	void			DisableByValue(string		strValue)
 			{
 				DisableByIndex(Items.FindIndex(x => x.Value.ToLower() == strValue.ToLower()));
 			}
-			public	void			DisableByValue(int			intValue)
+			public	virtual	void			DisableByValue(int			intValue)
 			{
 				DisableByIndex(Items.FindIndex(x => x.Value.ToLower() == intValue.ToString().ToLower()));
 			}
-			public	void			DisableByText(string		strText)
+			public	virtual	void			DisableByText(string		strText)
 			{
 				DisableByIndex(Items.FindIndex(x => x.Text.ToLower() == strText.ToLower()));
 			}
 
 			// -- SET LISTBOX ITEM TEXT
-			public	void			SetItemTextByIndex(int		intIndex, string strNewText)
+			public	virtual	void			SetItemTextByIndex(int		intIndex, string strNewText)
 			{
 				Items[intIndex].Text = strNewText;
 			}
-			public	void			SetItemTextByValue(string strValue, string strNewText)
+			public	virtual	void			SetItemTextByValue(string strValue, string strNewText)
 			{
 				int i = Items.FindIndex(x => x.Value == strValue);
 				if (i >= 0)
 					SetItemTextByIndex(i, strNewText);
 			}
-			public	void			SetItemTextByValue(int		intValue, string strNewText)
+			public	virtual	void			SetItemTextByValue(int		intValue, string strNewText)
 			{
 				SetItemTextByValue(intValue.ToString(), strNewText);
 			}
 
 			// -- SET LISTBOX ITEM SUBTEXT
-			public	void			SetItemSubTextByIndex(int		intIndex, string strNewText)
+			public	virtual	void			SetItemSubTextByIndex(int		intIndex, string strNewText)
 			{
 				Items[intIndex].SubText = strNewText;
 			}
-			public	void			SetItemSubTextByValue(string strValue, string strNewText)
+			public	virtual	void			SetItemSubTextByValue(string strValue, string strNewText)
 			{
 				int i = Items.FindIndex(x => x.Value == strValue);
 				if (i >= 0)
 					SetItemSubTextByIndex(i, strNewText);
 			}
-			public	void			SetItemSubTextByValue(int		intValue, string strNewText)
+			public	virtual	void			SetItemSubTextByValue(int		intValue, string strNewText)
 			{
 				SetItemSubTextByValue(intValue.ToString(), strNewText);
 			}
 
 			// -- CHANGE ITEM ORDER
-			public	bool			MoveItemUp(		int				intIndex)
+			public	virtual	bool			MoveItemUp(		int				intIndex)
 			{
 				if (intIndex < 1)
 					return false;
@@ -904,7 +974,7 @@ public	class						ListBoxControl : MonoBehaviour
 
 				return true;
 			}
-			public	bool			MoveItemDown(	int				intIndex)
+			public	virtual	bool			MoveItemDown(	int				intIndex)
 			{
 				if (intIndex < 0 || intIndex >= _items.Count - 1)
 					return false;
@@ -937,7 +1007,7 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 
 			// -- GET LISTBOX ITEM VALUE
-			public	string		GetValueByText(string		strText)
+			public	virtual	string		GetValueByText(string		strText)
 			{
 				int i = Items.FindIndex(x => x.Text.ToLower() == strText.Trim().ToLower());
 				if (i < 0)
@@ -945,13 +1015,13 @@ public	class						ListBoxControl : MonoBehaviour
 				else
 					return Items[i].Value;
 			}
-			public	string		GetValueByIndex(int			intIndex)
+			public	virtual	string		GetValueByIndex(int			intIndex)
 			{
 				if (intIndex < 0 || intIndex >= Items.Count)
 					return "";
 				return Items[intIndex].Value;
 			}
-			public	int				GetIntValueByIndex(int	intIndex)
+			public	virtual	int				GetIntValueByIndex(int	intIndex)
 			{
 				if (intIndex < 0 || intIndex >= Items.Count)
 					return -1;
@@ -959,7 +1029,7 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 
 			// -- GET LISTBOX ITEM TEXT
-			public	string		GetTextByValue(string		strvalue)
+			public	virtual	string		GetTextByValue(string		strvalue)
 			{
 				int i = Items.FindIndex(x => x.Value.ToLower() == strvalue.Trim().ToLower());
 				if (i < 0)
@@ -967,15 +1037,15 @@ public	class						ListBoxControl : MonoBehaviour
 				else
 					return Items[i].Text;
 			}
-			public	string		GetTextByValue(int			intValue)
+			public	virtual	string		GetTextByValue(int			intValue)
 			{
 				return GetTextByValue(intValue.ToString());
 			}
-			public	string		GetTextByValue(float		fValue)
+			public	virtual	string		GetTextByValue(float		fValue)
 			{
 				return GetTextByValue(fValue.ToString());
 			}
-			public	string		GetTextByIndex(int			intIndex)
+			public	virtual	string		GetTextByIndex(int			intIndex)
 			{
 				if (intIndex < 0 || intIndex >= Items.Count)
 					return "";
@@ -983,7 +1053,7 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 
 			// -- GET LISTBOX ITEM SUBTEXT
-			public	string		GetSubTextByValue(string		strvalue)
+			public	virtual	string		GetSubTextByValue(string		strvalue)
 			{
 				int i = Items.FindIndex(x => x.Value.ToLower() == strvalue.Trim().ToLower());
 				if (i < 0)
@@ -991,15 +1061,15 @@ public	class						ListBoxControl : MonoBehaviour
 				else
 					return Items[i].SubText;
 			}
-			public	string		GetSubTextByValue(int			intValue)
+			public	virtual	string		GetSubTextByValue(int			intValue)
 			{
 				return GetSubTextByValue(intValue.ToString());
 			}
-			public	string		GetSubTextByValue(float		fValue)
+			public	virtual	string		GetSubTextByValue(float		fValue)
 			{
 				return GetSubTextByValue(fValue.ToString());
 			}
-			public	string		GetSubTextByIndex(int			intIndex)
+			public	virtual	string		GetSubTextByIndex(int			intIndex)
 			{
 				if (intIndex < 0 || intIndex >= Items.Count)
 					return "";
@@ -1007,7 +1077,7 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 
 			// -- HANDLE SELECTION (SET LISTBOX ITEM SELECTED)
-			public	void			SelectByIndex(int				intIndex, bool blnShifted = false, bool blnCtrled = false)
+			public	virtual	void			SelectByIndex(int				intIndex, bool blnShifted = false, bool blnCtrled = false)
 			{
 				// DATA INTEGRITY CHECK
 				if (intIndex < -1 || intIndex >= Items.Count)
@@ -1050,17 +1120,17 @@ public	class						ListBoxControl : MonoBehaviour
 						OnChange(this.gameObject, _intSelectedItem);
 				}
 			}
-			public	void			SelectByValue(string		strValue)
+			public	virtual	void			SelectByValue(string		strValue)
 			{
 				int i = Items.FindIndex(x => x.Value.ToLower() == strValue.ToLower());
 				SelectByIndex(i);
 			}
-			public	void			SelectByText(	string		strText)
+			public	virtual	void			SelectByText(	string		strText)
 			{
 				int i = Items.FindIndex(x => x.Text.ToLower() == strText.ToLower());
 				SelectByIndex(i);
 			}
-			public	void			Unselect()
+			public	virtual	void			Unselect()
 			{
 				UnSelectAllItems();
 				_intSelectedItem = -1;
@@ -1068,17 +1138,45 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 
 			// -- HANDLE SELECTED INDEXES
-			public	bool			IsSelectedByIndex(int intIndex)
+			public	virtual	bool			IsSelectedByIndex(int intIndex)
 			{
 				return (_intSelectedItem == intIndex || _intSelectedList.FindIndex(x => x == intIndex) >= 0);
 			}
 		
 			// -- RESIZE THE CONTAINER (IF NECESSARY)
-			public	void			UpdateListBoxContainerSize()
+			public	virtual	void			UpdateListBoxContainerSize()
 			{
 				Vector2 v2 = ContainerRect.sizeDelta;
 				v2.y = ((this.Height + this.Spacing) * Items.Count) + this.Spacing;
 				ContainerRect.sizeDelta = v2;
+			}
+
+			// -- SHOW/HIDE THE LISTBOX CONTROL
+			public	virtual	void			Hide()
+			{
+				if (ListBoxMode == ListBoxModes.ListBox)
+				{
+					GetComponent<Image>().enabled = false;			
+					if (ScrollBarObject != null)
+							ScrollBarObject.SetActive(false);
+					if (ScrollRectObject != null)
+							ScrollRectObject.SetActive(false);
+					if (ListBoxTitle != null)
+							ListBoxTitle.gameObject.SetActive(false);
+				}
+			}
+			public	virtual	void			Show()
+			{
+				if (ListBoxMode == ListBoxModes.ListBox)
+				{
+					GetComponent<Image>().enabled = true;			
+					if (ScrollBarObject != null)
+							ScrollBarObject.SetActive(true);
+					if (ScrollRectObject != null)
+							ScrollRectObject.SetActive(true);
+					if (ListBoxTitle != null)
+							ListBoxTitle.gameObject.SetActive(true);
+				}
 			}
 
 		#endregion

@@ -23,22 +23,13 @@ public class DemoListBox : MonoBehaviour
 
 	#region "PUBLIC EDITOR PROPERTIES"
 
-		public Text ResultTextObject;
+		public	Text									ResultTextObject;
+		public	ListBoxControl				MyListBox;
+		public	DropDownListControl		MyDDL;
 
 	#endregion
 
 	#region "PRIVATE PROPERTIES"
-
-		private ListBoxControl			_listBox				= null;
-		private ListBoxControl			MyListBox
-		{
-			get
-			{
-				if (_listBox == null)
-						_listBox = (ListBoxControl)GameObject.FindObjectOfType(typeof(ListBoxControl));
-				return _listBox;
-			}
-		}
 
 		private string							ResultText
 		{
@@ -67,9 +58,9 @@ public class DemoListBox : MonoBehaviour
 			while (!blnDone)
 			{
 				yield return null;
-				if (MyListBox.IsInitialized)
+				if (MyListBox != null && MyListBox.IsInitialized)
 				{
-					MyListBox.OnChange += OnChange;
+					MyListBox.OnChange += OnDemoChange;
 					for (int i = 4; i < 11; i++)
 					{ 
 						if (i == 4)
@@ -93,9 +84,37 @@ public class DemoListBox : MonoBehaviour
 							MyListBox.AddItem(i, "Item #" + i.ToString());
 					}
 					blnDone = true;
+					MyListBox.SetToTop();		// SET THE SCROLLBAR TO THE TOP OF THE LIST
+				}
+				if (MyDDL != null && MyDDL.IsInitialized) {
+					MyDDL.DdlListBox.OnChange += OnDemoChange;
+					for (int i = 4; i < 11; i++)
+					{ 
+						if (i == 4)
+							MyDDL.AddItem(i, "Item #" + i.ToString(), "", (i * 3 * 100));																				// SET THE SUBTEXT FIELD TO AN INTEGER
+						else if (i == 5)
+							MyDDL.AddItem(i, "Item #" + i.ToString(), "", "$200.00");																						// SET THE SUBTEXT FIELD TO A STRING
+						else if (i == 6)
+							MyDDL.AddItem("Bob", "Item #" + i.ToString());																											// USE A STRING AS THE VALUE
+						else if (i == 7)
+							MyDDL.AddItem(new string[] { "This", "is", "an", "Array" }, "Item #" + i.ToString());								// USE A STRING ARRAY AS THE VALUE
+						else if (i == 8)
+						{
+							MyDDL.AddItem(i, "Item #" + i.ToString() + " (disabled)");
+							MyDDL.DisableByIndex(i - 1);																																				// DISABLE THIS LIST ITEM
+						} 
+						else if (i == 9)
+							MyDDL.AddItem(i, "Item #" + i.ToString(), Resources.Load<Sprite>("Images/Status-Green-DOT-UI"));		// ADD ITEM WITH ICON SET BY SPRITE OBJECT
+						else if (i == 10)
+							MyDDL.AddItem(i, "Item #" + i.ToString(), "Images/Status-Green-DOT-UI");														// ADD ITEM WITH ICON SET BY PATH TO SPRITE OBJECT
+						else
+							MyDDL.AddItem(i, "Item #" + i.ToString());
+					}
+					blnDone = true;
+					MyDDL.SetToTop();
 				}
 			}
-			MyListBox.SetToTop();		// SET THE SCROLLBAR TO THE TOP OF THE LIST
+			DisplaySelection();
 		}
 
 		/// <summary>
@@ -104,8 +123,13 @@ public class DemoListBox : MonoBehaviour
 		private void								DisplaySelection()
 		{
 			string st = "";
-			for (int i = 0; i < MyListBox.SelectedIndexes.Count; i++)
-				st += MyListBox.SelectedIndexes[i].ToString() + ": \"" + MyListBox.SelectedValues[i].ToString() + "\" - \"" + MyListBox.GetTextByIndex(MyListBox.SelectedIndexes[i]) + "\"\n";
+			if (MyListBox != null)
+				for (int i = 0; i < MyListBox.SelectedIndexes.Count; i++)
+					st += MyListBox.SelectedIndexes[i].ToString() + ": \"" + MyListBox.SelectedValues[i].ToString() + "\" - \"" + MyListBox.GetTextByIndex(MyListBox.SelectedIndexes[i]) + "\"\n";
+			else if (MyDDL != null)
+				for (int i = 0; i < MyDDL.SelectedIndexes.Count; i++)
+					st += MyDDL.SelectedIndexes[i].ToString() + ": \"" + MyDDL.SelectedValues[i].ToString() + "\" - \"" + MyDDL.GetTextByIndex(MyDDL.SelectedIndexes[i]) + "\"\n";
+
 			ResultText = st;
 		}
 
@@ -118,11 +142,11 @@ public class DemoListBox : MonoBehaviour
 		/// </summary>
 		/// <param name="go"></param>
 		/// <param name="intSelected"></param>
-		public	void	OnChange(GameObject go, int intSelected)
+		public	void	OnDemoChange(GameObject go, int intSelected)
 		{
-			if (go != MyListBox.gameObject)
-				return;
-			DisplaySelection();
+			if ((MyListBox	!= null && go == MyListBox.gameObject) || 
+					(MyDDL			!= null && go == MyDDL.DdlListBox.gameObject))
+				DisplaySelection();
 		}
 
 	#endregion
