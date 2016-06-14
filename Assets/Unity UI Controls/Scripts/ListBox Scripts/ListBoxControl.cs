@@ -301,10 +301,6 @@ public	class						ListBoxControl : MonoBehaviour
 		}
 		private void			Start()
 		{
-			// EXIT IF THIS IS A DROPDOWN LIST
-			if (ListBoxMode == ListBoxModes.DropDownList)
-				return;
-
 			// RESIZE THE ITEM CONTAINER TO THE WIDTH OF THE SCROLL RECT
 			if (ContainerRect != null)
 					ContainerRect.sizeDelta = new Vector2(ScrollRect.rect.width, ScrollRect.rect.height);
@@ -312,6 +308,12 @@ public	class						ListBoxControl : MonoBehaviour
 			// SET SCROLLBAR SENSITIVITY
 			if (ScrollRectObject != null)
 					ScrollRectObject.GetComponent<ScrollRect>().scrollSensitivity = Height - Spacing;
+			if (ScrollBarObject != null)
+					ScrollBarObject.GetComponent<Scrollbar>().numberOfSteps = 1;
+
+			// EXIT IF THIS IS A DROPDOWN LIST
+			if (ListBoxMode == ListBoxModes.DropDownList)
+				return;
 
 			// SET TITLE
 			if (ListBoxTitle != null)
