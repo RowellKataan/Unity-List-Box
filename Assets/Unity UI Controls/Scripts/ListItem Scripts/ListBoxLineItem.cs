@@ -22,6 +22,7 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using System.Collections;
 
+
 [RequireComponent(typeof(RectTransform))]
 [RequireComponent(typeof(Image))]
 public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler, IPointerDownHandler, IPointerUpHandler
@@ -524,6 +525,11 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 			bool blnShifted = Input.GetKey(KeyCode.LeftShift)		|| Input.GetKey(KeyCode.RightShift);
 			bool blnCtrled	= Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
 			LBcontrol.SelectByIndex(this.Index, blnShifted, blnCtrled);
+			if (eventData.clickCount > 1)
+			{
+				// FIRE DOUBLE-CLICK EVENT
+				LBcontrol.HandleDoubleClick(this.Index);
+			}
 		}
 
 	#endregion

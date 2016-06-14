@@ -874,4 +874,17 @@ public class Util : MonoBehaviour
 
 	#endregion
 
+	#region "CLIPBOARD FUNCTIONS"
+
+		public	static	void			CopyToClipboard(string strText)
+		{
+			GUIUtility.systemCopyBuffer = strText;
+		}
+		public	static	string		PasteFromClipboard()
+		{
+			return GUIUtility.systemCopyBuffer;
+		}
+
+	#endregion
+
 }

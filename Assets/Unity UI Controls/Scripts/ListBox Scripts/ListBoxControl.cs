@@ -24,7 +24,8 @@ using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
 
-public	delegate	void	OnListBoxSelectChanged(GameObject go, int intSelected);
+public	delegate	void	OnListBoxSelectChanged(	GameObject go, int intSelected);
+public	delegate	void	OnListBoxDoubleClick(		GameObject go, int intSelected);
 
 public	class						ListBoxControl : MonoBehaviour 
 {
@@ -60,6 +61,8 @@ public	class						ListBoxControl : MonoBehaviour
 		private string											_strTitle					= "";
 		[SerializeField]
 		private bool												_blnBestFit				= false;
+		[SerializeField]
+		private bool												_blnAllowDblClick	= false;
 		[SerializeField]
 		private bool												_blnPartOfDDL			= false;
 
@@ -158,6 +161,17 @@ public	class						ListBoxControl : MonoBehaviour
 				_blnBestFit = value;
 				if (ListBoxMode == ListBoxModes.ListBox && ListBoxTitle != null)
 						ListBoxTitle.resizeTextForBestFit = _blnBestFit;
+			}
+		}
+		public		bool										AllowDoubleClick
+		{
+			get
+			{
+				return _blnAllowDblClick && !_blnPartOfDDL && ListBoxMode == ListBoxModes.ListBox;
+			}
+			set
+			{
+				_blnAllowDblClick = value;
 			}
 		}
 		public		bool										PartOfDDL
@@ -298,6 +312,16 @@ public	class						ListBoxControl : MonoBehaviour
 			// SET SCROLLBAR SENSITIVITY
 			if (ScrollRectObject != null)
 					ScrollRectObject.GetComponent<ScrollRect>().scrollSensitivity = Height - Spacing;
+
+			// SET TITLE
+			if (ListBoxTitle != null)
+				Title = _strTitle;
+
+			// CHECK FOR LINE ITEM PREFAB
+			if (ListBoxLineItemPrefabObject == null)
+				Debug.LogError(gameObject.name + " is Missing the Line Item Prefab. Please add the Prefab.");
+			else if (ListBoxLineItemPrefabObject.GetComponent<ListBoxLineItem>() == null)
+				Debug.LogError(gameObject.name + " is Missing the Line Item Prefab. Please add the Prefab.");
 
 			// ADD INITIAL LIST ITEMS (IF THERE ARE ANY)
 			if (StartArray.Count > 0)
@@ -545,6 +569,16 @@ public	class						ListBoxControl : MonoBehaviour
 			// -- ADD ITEM TO LISTBOX
 			public	virtual	void			AddItem(string		strValue,	string strText, string strIcon = "",	string	strSub = "")
 			{
+				// CHECK IF LINE ITEM PREFAB EXISTS
+				if (ListBoxLineItemPrefabObject == null)
+				{
+					Debug.LogError(gameObject.name + " is Missing the Line Item Prefab. Please add the Prefab.");
+					return;
+				} else if (ListBoxLineItemPrefabObject.GetComponent<ListBoxLineItem>() == null) {
+					Debug.LogError(gameObject.name + " is Missing the Line Item Prefab. Please add the Prefab.");
+					return;
+				}
+
 				// CALCULATE ICON SPRITE
 				Sprite sprIcon = null;
 				if (strIcon != "")
@@ -588,6 +622,16 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 			public	virtual	void			AddItem(string		strValue,	string strText, Sprite sprIcon,				string	strSub = "")
 			{
+				// CHECK IF LINE ITEM PREFAB EXISTS
+				if (ListBoxLineItemPrefabObject == null)
+				{
+					Debug.LogError(gameObject.name + " is Missing the Line Item Prefab. Please add the Prefab.");
+					return;
+				} else if (ListBoxLineItemPrefabObject.GetComponent<ListBoxLineItem>() == null) {
+					Debug.LogError(gameObject.name + " is Missing the Line Item Prefab. Please add the Prefab.");
+					return;
+				}
+
 				int i = Items.FindIndex(x => x.Value.ToLower() == strValue.ToLower() || x.Text.ToLower() == strText.ToLower());
 				if (i >= 0)
 				{
@@ -1136,6 +1180,30 @@ public	class						ListBoxControl : MonoBehaviour
 				_intSelectedItem = -1;
 				_intSelectedList = new List<int>();
 			}
+			public	virtual	void			HandleDoubleClick(int intIndex)
+			{
+				// DATA INTEGRITY CHECK
+				if (!AllowDoubleClick)
+					return;
+				if (intIndex < -1 || intIndex >= Items.Count)
+					return;
+
+				// SELECT THE ITEM
+				UnSelectAllItems();
+				_intSelectedItem = intIndex;
+				if (_intSelectedItem >= 0 && Items[_intSelectedItem].Enabled)
+				{
+					Items[_intSelectedItem].Select();
+					_intSelectedList.Add(intIndex);
+				}
+
+				// PASS THE DOUBLE-CLICK EVENT TO THE ONDOUBLECLICK EVeNT
+				if (_intSelectedItem >= 0)
+				{
+					if (this.OnDoubleClick != null)
+						OnDoubleClick(this.gameObject, _intSelectedItem);
+				}
+			}
 
 			// -- HANDLE SELECTED INDEXES
 			public	virtual	bool			IsSelectedByIndex(int intIndex)
@@ -1186,7 +1254,8 @@ public	class						ListBoxControl : MonoBehaviour
 	#region "EVENT FUNCTIONS"
 
 		public	event						OnListBoxSelectChanged		OnChange;
-
+		public	event						OnListBoxDoubleClick			OnDoubleClick;
+								
 	#endregion
 
 }

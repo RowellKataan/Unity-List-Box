@@ -60,7 +60,8 @@ public class DemoListBox : MonoBehaviour
 				yield return null;
 				if (MyListBox != null && MyListBox.IsInitialized)
 				{
-					MyListBox.OnChange += OnDemoChange;
+					MyListBox.OnChange			+= OnDemoChange;
+					MyListBox.OnDoubleClick	+= OnDemoDoubleClick;
 					for (int i = 4; i < 11; i++)
 					{ 
 						if (i == 4)
@@ -147,6 +148,12 @@ public class DemoListBox : MonoBehaviour
 			if ((MyListBox	!= null && go == MyListBox.gameObject) || 
 					(MyDDL			!= null && go == MyDDL.DdlListBox.gameObject))
 				DisplaySelection();
+		}
+		public	void	OnDemoDoubleClick(GameObject go, int intSelected)
+		{
+			if ((MyListBox	!= null && go == MyListBox.gameObject) || 
+					(MyDDL			!= null && go == MyDDL.DdlListBox.gameObject))
+			ResultText = "Double-Clicked Index " + intSelected.ToString();
 		}
 
 	#endregion

@@ -50,10 +50,11 @@ public class DropDownListControlEditor : Editor
 				EditorGUILayout.Space();
 			}
 
-			myTarget.DdlListBox.Title						= "";
-			myTarget.DdlListBox.TitleBestFit		= false;
-			myTarget.DdlListBox.CanMultiSelect	= false;
-			myTarget.DdlListBox.PartOfDDL				= true;
+			myTarget.DdlListBox.Title							= "";
+			myTarget.DdlListBox.TitleBestFit			= false;
+			myTarget.DdlListBox.CanMultiSelect		= false;
+			myTarget.DdlListBox.PartOfDDL					= true;
+			myTarget.DdlListBox.AllowDoubleClick	= false;
 
 			EditorStyles.label.fontStyle	= FontStyle.Bold;
 			EditorGUILayout.LabelField("LINE ITEM SETTINGS");
