@@ -74,6 +74,7 @@ public	class						ListBoxControl : MonoBehaviour
 		private List<int>										_intSelectedList	= new List<int>();
 
 		protected	bool											_blnInitialized		= false;
+		protected bool											_blnInitializing	= false;
 
 	#endregion
 
@@ -118,6 +119,7 @@ public	class						ListBoxControl : MonoBehaviour
 		public		bool										CanMultiSelect			= false;
 		public		float										Height							= 36;
 		public		float										Spacing							=  4;
+		public		char										SeparatorChar				= '|';
 
 	#endregion
 
@@ -226,6 +228,24 @@ public	class						ListBoxControl : MonoBehaviour
 				return st;
 			}
 		}
+		public		virtual	string					SelectedValuesString
+		{
+			get
+			{
+				List<string> st = SelectedValues;
+				if (st == null || st.Count < 1)
+					return "";
+				string strOut = "";
+				for (int i = 0; i < st.Count; i++)
+				{
+					if (st[i].Trim() != "")
+						strOut += SeparatorChar + st[i];
+				}
+				if (strOut.Length > 1)
+					strOut = strOut.Substring(1);
+				return strOut;
+			}
+		}
 		public		virtual	string					SelectedValue
 		{
 			get
@@ -237,9 +257,9 @@ public	class						ListBoxControl : MonoBehaviour
 		}
 		public		virtual	string					SelectedArrayValue(int intIndex)
 		{
-			if (intIndex > Items[_intSelectedList[0]].Value.Split('|').Length - 1)
+			if (intIndex > Items[_intSelectedList[0]].Value.Split(SeparatorChar).Length - 1)
 				return "";
-			return Items[_intSelectedList[0]].Value.Split('|')[intIndex];
+			return Items[_intSelectedList[0]].Value.Split(SeparatorChar)[intIndex];
 		}
 		public		virtual	int							SelectedValueInt
 		{
@@ -301,6 +321,11 @@ public	class						ListBoxControl : MonoBehaviour
 		}
 		private void			Start()
 		{
+			if (_blnInitialized || _blnInitializing || !gameObject.activeInHierarchy)
+				return;
+
+			_blnInitializing = true;
+
 			// RESIZE THE ITEM CONTAINER TO THE WIDTH OF THE SCROLL RECT
 			if (ContainerRect != null)
 					ContainerRect.sizeDelta = new Vector2(ScrollRect.rect.width, ScrollRect.rect.height);
@@ -357,8 +382,8 @@ public	class						ListBoxControl : MonoBehaviour
 			v2.y = ((this.Height + this.Spacing) * Items.Count) + this.Spacing;
 			ContainerRect.sizeDelta = v2;
 			try
-			{ 
-				if (gameObject.activeSelf)
+			{
+				if (gameObject.activeInHierarchy)
 					StartCoroutine(SetScroll(fScroll));
 			} catch { }
 		}
@@ -442,7 +467,8 @@ public	class						ListBoxControl : MonoBehaviour
 
 		private IEnumerator		SetScroll(float fValue)
 		{
-			if (ListBoxMode == ListBoxModes.ListBox && ScrollBarObject != null && ScrollBarObject.activeSelf)
+			yield return new WaitForSeconds(0.01f);
+			if (gameObject.activeInHierarchy && ScrollBarObject != null && ScrollBarObject.activeSelf && ListBoxMode == ListBoxModes.ListBox)
 			{
 				yield return new WaitForSeconds(0.12f);
 				ScrollBarObject.GetComponent<Scrollbar>().value = 0;
@@ -692,7 +718,7 @@ public	class						ListBoxControl : MonoBehaviour
 				{
 					string strNewVal = "";
 					for (int i = 0; i < strValue.Length; i++)
-						strNewVal += "|" + strValue[i];
+						strNewVal += SeparatorChar + strValue[i];
 					strNewVal = strNewVal.Substring(1);
 					AddItem(strNewVal, strText);
 				}
@@ -703,7 +729,7 @@ public	class						ListBoxControl : MonoBehaviour
 				{
 					string strNewVal = "";
 					for (int i = 0; i < strValue.Length; i++)
-						strNewVal += "|" + strValue[i];
+						strNewVal += SeparatorChar + strValue[i];
 					strNewVal = strNewVal.Substring(1);
 					AddItem(strNewVal, strText, strIcon);
 				}
@@ -714,7 +740,7 @@ public	class						ListBoxControl : MonoBehaviour
 				{
 					string strNewVal = "";
 					for (int i = 0; i < strValue.Length; i++)
-						strNewVal += "|" + strValue[i];
+						strNewVal += SeparatorChar + strValue[i];
 					strNewVal = strNewVal.Substring(1);
 					AddItem(strNewVal, strText, strIcon, strSub);
 				}
@@ -725,7 +751,7 @@ public	class						ListBoxControl : MonoBehaviour
 				{
 					string strNewVal = "";
 					for (int i = 0; i < strValue.Length; i++)
-						strNewVal += "|" + strValue[i];
+						strNewVal += SeparatorChar + strValue[i];
 					strNewVal = strNewVal.Substring(1);
 					AddItem(strNewVal, strText, strIcon, intSub.ToString());
 				}
@@ -736,7 +762,7 @@ public	class						ListBoxControl : MonoBehaviour
 				{
 					string strNewVal = "";
 					for (int i = 0; i < strValue.Length; i++)
-						strNewVal += "|" + strValue[i];
+						strNewVal += SeparatorChar + strValue[i];
 					strNewVal = strNewVal.Substring(1);
 					AddItem(strNewVal, strText, strIcon, fSub.ToString());
 				}
@@ -747,7 +773,7 @@ public	class						ListBoxControl : MonoBehaviour
 				{
 					string strNewVal = "";
 					for (int i = 0; i < strValue.Length; i++)
-						strNewVal += "|" + strValue[i];
+						strNewVal += SeparatorChar + strValue[i];
 					strNewVal = strNewVal.Substring(1);
 					AddItem(strNewVal, strText, sprIcon);
 				}
@@ -758,7 +784,7 @@ public	class						ListBoxControl : MonoBehaviour
 				{
 					string strNewVal = "";
 					for (int i = 0; i < strValue.Length; i++)
-						strNewVal += "|" + strValue[i];
+						strNewVal += SeparatorChar + strValue[i];
 					strNewVal = strNewVal.Substring(1);
 					AddItem(strNewVal, strText, sprIcon, strSub);
 				}
@@ -769,7 +795,7 @@ public	class						ListBoxControl : MonoBehaviour
 				{
 					string strNewVal = "";
 					for (int i = 0; i < strValue.Length; i++)
-						strNewVal += "|" + strValue[i];
+						strNewVal += SeparatorChar + strValue[i];
 					strNewVal = strNewVal.Substring(1);
 					AddItem(strNewVal, strText, sprIcon, intSub.ToString());
 				}
@@ -780,7 +806,7 @@ public	class						ListBoxControl : MonoBehaviour
 				{
 					string strNewVal = "";
 					for (int i = 0; i < strValue.Length; i++)
-						strNewVal += "|" + strValue[i];
+						strNewVal += SeparatorChar + strValue[i];
 					strNewVal = strNewVal.Substring(1);
 					AddItem(strNewVal, strText, sprIcon, fSub.ToString());
 				}
@@ -896,12 +922,13 @@ public	class						ListBoxControl : MonoBehaviour
 			// -- SET LISTBOX SCROLLBAR POSITION
 			public	virtual	void			SetToTop()
 			{
-				if (gameObject.activeSelf)
-					StartCoroutine(SetScroll(1));
+				if (gameObject.activeInHierarchy)
+						StartCoroutine(SetScroll(1));
 			}
 			public	virtual	void			SetToBottom()
 			{
-				StartCoroutine(SetScroll(0));
+				if (gameObject.activeInHierarchy)
+						StartCoroutine(SetScroll(0));
 			}
 
 			// -- CHECK FOR LISTBOX ITEM WITH VALUE
@@ -1224,6 +1251,7 @@ public	class						ListBoxControl : MonoBehaviour
 			// -- SHOW/HIDE THE LISTBOX CONTROL
 			public	virtual	void			Hide()
 			{
+				gameObject.SetActive(true);
 				if (ListBoxMode == ListBoxModes.ListBox)
 				{
 					GetComponent<Image>().enabled = false;			
@@ -1237,6 +1265,7 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 			public	virtual	void			Show()
 			{
+				gameObject.SetActive(true);
 				if (ListBoxMode == ListBoxModes.ListBox)
 				{
 					GetComponent<Image>().enabled = true;			
@@ -1246,6 +1275,17 @@ public	class						ListBoxControl : MonoBehaviour
 							ScrollRectObject.SetActive(true);
 					if (ListBoxTitle != null)
 							ListBoxTitle.gameObject.SetActive(true);
+				}
+			}
+			public	virtual	bool			IsShown
+			{
+				get
+				{
+					if (ListBoxMode == ListBoxModes.ListBox)
+					{
+						return GetComponent<Image>().enabled && ScrollBarObject.activeSelf && ScrollRectObject.activeSelf; 
+					}
+					return false;
 				}
 			}
 

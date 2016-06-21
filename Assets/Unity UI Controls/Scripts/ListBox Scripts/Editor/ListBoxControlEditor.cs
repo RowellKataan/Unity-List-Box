@@ -61,6 +61,9 @@ public class ListBoxControlEditor : Editor
 				myTarget.TitleBestFit					=	EditorGUILayout.Toggle(			"Best Fit Title",		myTarget.TitleBestFit);
 				myTarget.CanMultiSelect				=	EditorGUILayout.Toggle(			"Can Multi-Select", myTarget.CanMultiSelect);
 				myTarget.AllowDoubleClick			=	EditorGUILayout.Toggle(			"Can Double-Click", myTarget.AllowDoubleClick);
+				string	strChar								= EditorGUILayout.TextField(	"Separator Char",		myTarget.SeparatorChar.ToString()).Trim();
+				if (strChar.Length > 0 && strChar != myTarget.SeparatorChar.ToString())
+					myTarget.SeparatorChar			= char.Parse(strChar.Substring(0, 1));
 				EditorGUILayout.Separator();
 				EditorGUILayout.Space();
 
