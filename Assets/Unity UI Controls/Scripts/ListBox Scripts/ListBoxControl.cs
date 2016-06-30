@@ -27,6 +27,7 @@ using System.Collections.Generic;
 public	delegate	void	OnListBoxSelectChanged(	GameObject go, int intSelected);
 public	delegate	void	OnListBoxDoubleClick(		GameObject go, int intSelected);
 
+[System.Serializable]
 public	class						ListBoxControl : MonoBehaviour 
 {
 
@@ -111,14 +112,22 @@ public	class						ListBoxControl : MonoBehaviour
 		public		Text										ListBoxTitle;
 		public		GameObject							ListBoxLineItemPrefabObject;
 
+		[SerializeField]
 		public		Color										ItemNormalColor;
+		[SerializeField]
 		public		Color										ItemHighlightColor;
+		[SerializeField]
 		public		Color										ItemSelectedColor;
+		[SerializeField]
 		public		Color										ItemDisabledColor;
 
+		[SerializeField]
 		public		bool										CanMultiSelect			= false;
+		[SerializeField]
 		public		float										Height							= 36;
+		[SerializeField]
 		public		float										Spacing							=  4;
+		[SerializeField]
 		public		char										SeparatorChar				= '|';
 
 	#endregion
@@ -285,6 +294,15 @@ public	class						ListBoxControl : MonoBehaviour
 				_intSelectedItem = value;
 			}
 		}
+		public		virtual	string					SelectedText
+		{
+			get
+			{
+				if (_intSelectedItem < 0 || _intSelectedList == null || _intSelectedList.Count < 0)
+					return null;
+				return Items[_intSelectedList[0]].Text;
+			}
+		}
 
 		public		bool										IsInitialized
 		{
@@ -360,10 +378,14 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 
 			// MARK CONTROL AS INITIALIZED
-			_blnInitialized = true;
+			_blnInitializing	= false;
+			_blnInitialized		= true;
 		}
 		private void			OnEnable()
 		{
+//		if (!_blnInitialized && !_blnInitializing && gameObject.activeInHierarchy)
+//			Start();
+
 			// MAKE SURE THAT THE LIST BOX ITEM CONTAINER IS PROPERLY SIZED (HEIGHT)
 			if (ListBoxMode == ListBoxModes.ListBox)
 				UpdateListBoxContainerSize();

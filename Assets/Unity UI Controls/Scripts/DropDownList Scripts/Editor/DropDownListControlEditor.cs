@@ -50,16 +50,23 @@ public class DropDownListControlEditor : Editor
 				EditorGUILayout.Space();
 			}
 
-			myTarget.DdlListBox.Title							= "";
-			myTarget.DdlListBox.TitleBestFit			= false;
-			myTarget.DdlListBox.CanMultiSelect		= false;
-			myTarget.DdlListBox.PartOfDDL					= true;
-			myTarget.DdlListBox.AllowDoubleClick	= false;
+			myTarget.DdlListBox.Title								= "";
+			myTarget.DdlListBox.TitleBestFit				= false;
+			myTarget.DdlListBox.CanMultiSelect			= false;
+			myTarget.DdlListBox.PartOfDDL						= true;
+			myTarget.DdlListBox.AllowDoubleClick		= false;
+
+			EditorStyles.label.fontStyle = FontStyle.Bold;
+			EditorGUILayout.LabelField("DROPDOWN LIST PLACEHOLDER TEXT");
+			EditorStyles.label.fontStyle = FontStyle.Normal;
+			myTarget.PlaceholderText								= EditorGUILayout.TextField("Placeholder Text",		myTarget.PlaceholderText);
+			EditorGUILayout.Separator();
+			EditorGUILayout.Space();
 
 			EditorStyles.label.fontStyle	= FontStyle.Bold;
 			EditorGUILayout.LabelField("LINE ITEM SETTINGS");
 			EditorStyles.label.fontStyle	= FontStyle.Normal;
-			myTarget.DdlListBox.Height							=	EditorGUILayout.FloatField("Line Item Height",	myTarget.DdlListBox.Height);
+			myTarget.LineItemHeight									=	EditorGUILayout.FloatField("Line Item Height",	myTarget.LineItemHeight);
 			myTarget.DdlListBox.Spacing							=	EditorGUILayout.FloatField("Line Item Spacing",	myTarget.DdlListBox.Spacing);
 			myTarget.DdlListBox.ItemNormalColor			= EditorGUILayout.ColorField("Normal Color",			myTarget.DdlListBox.ItemNormalColor);
 			myTarget.DdlListBox.ItemHighlightColor	= EditorGUILayout.ColorField("Highlight Color",		myTarget.DdlListBox.ItemHighlightColor);

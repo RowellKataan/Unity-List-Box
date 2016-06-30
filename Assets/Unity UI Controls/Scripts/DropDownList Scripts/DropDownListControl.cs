@@ -1,18 +1,48 @@
-﻿using UnityEngine;
+﻿// ===========================================================================================================
+//
+// Class/Library: DropDownList Control - Main Script
+//        Author: Michael Marzilli   ( http://www.linkedin.com/in/michaelmarzilli , http://www.develteam.com/Developer/Rowell/Portfolio )
+//       Created: Jun 30, 2016
+//	
+// VERS 1.0.000 : Jun 30, 2016 :	Original File Created. Released for Unity 3D.
+//
+// ===========================================================================================================
+
+#if UNITY_EDITOR
+	#define		IS_DEBUGGING
+#else
+	#undef		IS_DEBUGGING
+#endif
+
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 using System.Collections.Generic;
 
+public delegate void OnDropDownSelectChanged(GameObject go, int intSelected);
+
 public class DropDownListControl : ListBoxControl 
 {
+
+	#region "PRIVATE CONSTANTS"
+
+		private const	float				CONTROL_BORDER			= 30;
+
+	#endregion
 
 	#region "PRIVATE VARIABLES"
 
 		[SerializeField]
 		private	string						_strStartingValue		= "";
-
+		[SerializeField]
 		private string						_strPlaceholder			= "Select Item...";
+		[SerializeField]
+		private float							_fHeight						= 36;
+
 		private bool							_blnDroppedDown			= false;
+		private Event							_evntClick					= null;
+		private RectTransform			_trnLB							= null;
+		private float							_fOffset						= -1;
 
 	#endregion
 
@@ -27,6 +57,31 @@ public class DropDownListControl : ListBoxControl
 			set
 			{
 				_strStartingValue = value.Trim();
+			}
+		}
+		public	string										PlaceholderText
+		{
+			get
+			{
+				return _strPlaceholder;
+			}
+			set
+			{
+				_strPlaceholder = value.Trim();
+				SelectedTextObject.text = _strPlaceholder;
+			}
+		}
+		public	float											LineItemHeight
+		{
+			get
+			{
+				return _fHeight;
+			}
+			set
+			{
+				_fHeight = value;
+				if (DdlListBox != null)
+						DdlListBox.Height = _fHeight;
 			}
 		}
 
@@ -128,7 +183,9 @@ public class DropDownListControl : ListBoxControl
 
 			if (DdlListBox != null)
 			{
-				DdlListBox.PartOfDDL = true;
+				DdlListBox.gameObject.SetActive(true);
+				DdlListBox.PartOfDDL	= true;
+				DdlListBox.Height			= _fHeight;
 				DdlListBox.InitStartItems(_startArray);
 			}
 		}
@@ -164,6 +221,50 @@ public class DropDownListControl : ListBoxControl
 				DdlListBox.Hide();
 			}
 		}
+		private void							OnGUI()
+		{
+			Event e = Event.current;
+			if (_blnInitialized && _blnDroppedDown)
+				if (e.type == EventType.MouseUp)
+				{
+					// CHECKING FOR CLICK OUTSIDE OF DDL CONTROL IN A COROUTINE 
+					// BECAUSE WE DON'T WANT TO MISS A CLICK ON A LIST ITEM
+					_evntClick = e;
+					StartCoroutine(CheckHide());
+				}
+		}
+
+		private IEnumerator				CheckHide()
+		{
+			yield return new WaitForSeconds(0.1f);
+			HideIfClickedOutside(DdlListBox.gameObject, _evntClick);
+		}
+		private bool							HideIfClickedOutside(GameObject panel, Event e)
+		{
+			if (panel != null && panel.activeSelf && _blnDroppedDown)
+			{
+				if (_trnLB == null)
+						_trnLB					= DdlListBox.GetComponent<RectTransform>();
+				if (_fOffset < 0)
+						_fOffset				= SelectedTextObject.GetComponent<RectTransform>().rect.size.y;
+
+				float		fCalc				=	Screen.height  - (_trnLB.position.y + _fOffset + CONTROL_BORDER);
+				Vector2 mouse				= new Vector2(e.mousePosition.x,  e.mousePosition.y);
+				Vector2 location		= new Vector2(_trnLB.position.x - CONTROL_BORDER,  fCalc);
+				Vector2 size				= new Vector2(_trnLB.rect.size.x + (CONTROL_BORDER * 2), _trnLB.rect.size.y + _fOffset + (CONTROL_BORDER * 2));
+				Rect		r						= new Rect(location, size);
+
+				if (!r.Contains(mouse))
+				{
+					_evntClick = null;
+					DdlListBox.Hide();
+					_blnDroppedDown = false;
+					return true;
+				}
+			}
+			_evntClick = null;
+			return false;
+		}
 
 	#endregion
 
@@ -176,6 +277,8 @@ public class DropDownListControl : ListBoxControl
 			{
 				if (DdlListBox != null)
 						DdlListBox.Clear();
+				if (SelectedTextObject != null)
+						SelectedTextObject.text = PlaceholderText;
 			}
 
 			// -- ADD ITEM TO LISTBOX
@@ -558,22 +661,41 @@ public class DropDownListControl : ListBoxControl
 			public	override	void			SelectByIndex(int				intIndex, bool blnShifted = false, bool blnCtrled = false)
 			{
 				if (DdlListBox != null)
+				{ 
 					DdlListBox.SelectByIndex(intIndex, blnShifted, blnCtrled);
+					if (DdlListBox.SelectedIndex < 0)
+						SelectedTextObject.text = _strPlaceholder;
+					else
+						SelectedTextObject.text = DdlListBox.SelectedText;
+				}
 			}
 			public	override	void			SelectByValue(string		strValue)
 			{
 				if (DdlListBox != null)
+				{ 
 					DdlListBox.SelectByValue(strValue);
+					if (DdlListBox.SelectedIndex < 0)
+						SelectedTextObject.text = _strPlaceholder;
+					else
+						SelectedTextObject.text = DdlListBox.SelectedText;
+				}
 			}
 			public	override	void			SelectByText(	string		strText)
 			{
 				if (DdlListBox != null)
+				{ 
 					DdlListBox.SelectByText(strText);
+					if (DdlListBox.SelectedIndex < 0)
+						SelectedTextObject.text = _strPlaceholder;
+					else
+						SelectedTextObject.text = DdlListBox.SelectedText;
+				}
 			}
 			public	override	void			Unselect()
 			{
 				if (DdlListBox != null)
 					DdlListBox.Unselect();
+				SelectedTextObject.text = _strPlaceholder;
 			}
 
 			// -- HANDLE SELECTED INDEXES
@@ -616,6 +738,12 @@ public class DropDownListControl : ListBoxControl
 
 		#endregion
 
+		private void									DoShow()
+		{
+			DdlListBox.transform.parent.SetSiblingIndex(transform.parent.childCount - 1);
+			DdlListBox.Show();
+		}
+
 	#endregion
 
 	#region "BUTTON FUNCTIONS"
@@ -626,7 +754,7 @@ public class DropDownListControl : ListBoxControl
 			{
 				_blnDroppedDown = !_blnDroppedDown;
 				if (_blnDroppedDown)
-					DdlListBox.Show();
+					DoShow();
 				else
 					DdlListBox.Hide();
 			}
@@ -636,16 +764,24 @@ public class DropDownListControl : ListBoxControl
 
 	#region "EVENT FUNCTIONS"
 
+		public	event	OnDropDownSelectChanged	OnSelectionChange;
+
 		public	void							OnChange(GameObject go, int intIndex)
 		{
 			if (go != this.DdlListBox.gameObject)
 				return;
 
 			if (SelectedTextObject != null)
+				if (intIndex < 0)
+					SelectedTextObject.text = PlaceholderText;
+				else
 					SelectedTextObject.text = DdlListBox.GetTextByIndex(intIndex);
 
 			_blnDroppedDown = false;
 			DdlListBox.Hide();
+
+			if (SelectedIndex >= 0 && this.OnSelectionChange != null)
+					OnSelectionChange(this.gameObject, SelectedIndex);
 		}
 
 	#endregion

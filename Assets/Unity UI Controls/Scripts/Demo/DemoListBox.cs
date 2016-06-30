@@ -158,4 +158,15 @@ public class DemoListBox : MonoBehaviour
 
 	#endregion
 
+	#region "BUTTON FUNCTIONS"
+
+		public	void	OnClearDDLClick()
+		{
+			if (MyDDL != null)
+				MyDDL.SelectByIndex(-1);
+			DisplaySelection();
+		}
+
+	#endregion
+
 }

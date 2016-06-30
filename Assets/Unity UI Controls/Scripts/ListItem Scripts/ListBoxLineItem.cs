@@ -445,6 +445,14 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 				MainTextRT.localPosition = v2;
 			}
 
+			// SET SUBTEXT SIZE
+			if (_strSubText != "")
+			{
+				v2 = SubTextRT.sizeDelta;
+				v2.y = _fHeight - (ELEMENT_SPACING * 2);
+				SubTextRT.sizeDelta = v2;
+			}
+
 			// COLORING
 			if (!this.Enabled)
 				_img.color = ItemDisabledColor;
