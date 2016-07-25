@@ -44,6 +44,8 @@ public class DropDownListControlEditor : Editor
 			blnObjects = EditorGUILayout.Foldout(blnObjects, "DROPDOWN LIST GAMEOBJECT COMPONENTS");
 			if (blnObjects)
 			{
+				myTarget.ParentContainer		= (GameObject)		EditorGUILayout.ObjectField("Parent Container",	myTarget.ParentContainer,			typeof(GameObject),			true);
+				EditorGUILayout.Space();
 				myTarget.SelectedTextObject	= (Text)					EditorGUILayout.ObjectField("Selected Text",		myTarget.SelectedTextObject,	typeof(Text),						true);
 				myTarget.DdlListBox					= (ListBoxControl)EditorGUILayout.ObjectField("List Box Control",	myTarget.DdlListBox,					typeof(ListBoxControl), true);
 				EditorGUILayout.Separator();
@@ -165,4 +167,5 @@ public class DropDownListControlEditor : Editor
 				EditorUtility.SetDirty(myTarget);
 		}
 	}
+
 }

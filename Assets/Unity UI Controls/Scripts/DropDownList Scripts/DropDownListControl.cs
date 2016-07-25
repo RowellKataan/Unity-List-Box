@@ -5,6 +5,13 @@
 //       Created: Jun 30, 2016
 //	
 // VERS 1.0.000 : Jun 30, 2016 :	Original File Created. Released for Unity 3D.
+//			1.0.001 : Jul 25, 2016 :	Added a check to make sure the control does not extend outside of the screen.
+//																Added the ability to set the control's Parent container. The default will be the
+//																object's direct parent (if the gameobject in the inspector is left null).
+//																This is for future use, and currently unused.
+//
+// NOTE:	TRY TO KEEP THE NUMBER OF ITEMS IN A DROPDOWN LIST TO 500 ITEMS OR LESS.
+//				OTHERWISE, YOU MAY EXPERIENCE A MOMENTARY PAUSE WHEN THE CONTROL IS OPENED AND COLLAPSED.
 //
 // ===========================================================================================================
 
@@ -26,7 +33,8 @@ public class DropDownListControl : ListBoxControl
 
 	#region "PRIVATE CONSTANTS"
 
-		private const	float				CONTROL_BORDER			= 30;
+		private const	float				CONTROL_BORDER						= 30;
+		private const int					MINIMUM_DISPLAYED_CELLS		= 3;
 
 	#endregion
 
@@ -169,6 +177,7 @@ public class DropDownListControl : ListBoxControl
 
 	#region "PUBLIC EDITOR PROPERTIES"
 
+		public	GameObject				ParentContainer		= null;
 		public	Text							SelectedTextObject;
 		public	GameObject				DropDownButton;
 		public	ListBoxControl		DdlListBox;
@@ -188,15 +197,20 @@ public class DropDownListControl : ListBoxControl
 				DdlListBox.Height			= _fHeight;
 				DdlListBox.InitStartItems(_startArray);
 			}
+			if (ParentContainer == null)
+					ParentContainer =  this.transform.parent.gameObject;
 		}
 		private void							Start()
 		{
+			// INITIALIZE THE DROPDOWN LISTBOX (IF APPLICABLE)
 			if (DdlListBox != null)
 			{ 
 				DdlListBox.gameObject.SetActive(true);
 				DdlListBox.Show();
 				DdlListBox.OnChange += this.OnChange;
 			}
+			// RE-POSITION THE DROPDOWN LISTBOX (IF APPLICABLE)
+			DetermineDropDownPosition();
 		}
 		private void							Update()
 		{
@@ -232,6 +246,38 @@ public class DropDownListControl : ListBoxControl
 					_evntClick = e;
 					StartCoroutine(CheckHide());
 				}
+		}
+
+		private bool							IsOverflowing(GameObject go)
+		{
+			// DETERMINE IF THE GAMEOBJECT/CONTROL EXTENDS OFF THE SCREEN
+			Rect			screenRect		= new Rect(0f, 0f, Screen.width, Screen.height);
+			Vector3[]	objectCorners	= new Vector3[4];
+			go.GetComponent<RectTransform>().GetWorldCorners(objectCorners);
+ 
+			foreach (Vector3 corner in objectCorners)
+			{
+				if (!screenRect.Contains(corner))
+					return true;
+			}
+			return false; 
+		}
+		private void							DetermineDropDownPosition()
+		{
+			// DETERMINE IF THE DROPDOWN LISTBOX EXTENDS BEYOND THE BOUNDARIES OF THE SCREEN
+			// IF SO, MOVE LISTBOX ABOVE THE DDL CONTROL. OTHERWISE, LEAVE IT BELOW THE DDL CONTROL.
+			if (DdlListBox == null)
+				return;
+			if (!IsOverflowing(DdlListBox.gameObject))
+				return;
+
+			RectTransform rt				= DdlListBox.GetComponent<RectTransform>();
+			Vector3				v3Pos			= rt.position;
+			Vector2				v2Size		= rt.sizeDelta;
+			float					fThisSize	= this.GetComponent<RectTransform>().sizeDelta.y;
+			float					fNewPos		= v3Pos.y + v2Size.y + fThisSize + (DdlListBox.Spacing * 2);
+										v3Pos.y		= fNewPos;
+			DdlListBox.GetComponent<RectTransform>().position = v3Pos;
 		}
 
 		private IEnumerator				CheckHide()
@@ -768,7 +814,7 @@ public class DropDownListControl : ListBoxControl
 
 		public	void							OnChange(GameObject go, int intIndex)
 		{
-			if (go != this.DdlListBox.gameObject)
+			if (go != DdlListBox.gameObject)
 				return;
 
 			if (SelectedTextObject != null)

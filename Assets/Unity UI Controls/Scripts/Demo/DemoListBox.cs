@@ -6,6 +6,9 @@
 //	
 // VERS 1.0.000 : Jun 10, 2016 : Original File Created. Released for Unity 3D.
 //
+// NOTE:	YOU MAY EXPERIENCE A SLIGHT DELAY IN THE CONTROL OPENING/CLOSING 
+//				IF MORE THAN 500 (OR SO) ITEMS ARE ADDED TO ONE DROPDOWN LISTBOX.
+//
 // ===========================================================================================================
 
 #if UNITY_EDITOR
@@ -20,6 +23,12 @@ using System.Collections;
 
 public class DemoListBox : MonoBehaviour 
 {
+
+	#region "PRIVATE CONSTANTS"
+
+		private const int						MAX_DDL_ITEMS = 200;
+
+	#endregion
 
 	#region "PUBLIC EDITOR PROPERTIES"
 
@@ -84,6 +93,7 @@ public class DemoListBox : MonoBehaviour
 						else
 							MyListBox.AddItem(i, "Item #" + i.ToString());
 					}
+
 					blnDone = true;
 					MyListBox.SetToTop();		// SET THE SCROLLBAR TO THE TOP OF THE LIST
 				}
@@ -111,6 +121,15 @@ public class DemoListBox : MonoBehaviour
 						else
 							MyDDL.AddItem(i, "Item #" + i.ToString());
 					}
+
+					yield return null;
+					yield return new WaitForSeconds(0.01f);
+
+					for (int i = 11; i <= MAX_DDL_ITEMS; i++)
+					{
+						MyDDL.AddItem(i, "Item #" + i.ToString());
+					}
+
 					blnDone = true;
 					MyDDL.SetToTop();
 				}
