@@ -8,6 +8,7 @@
 //			1.0.001	:	Jun 11, 2016 :	Added a SubText field/element to the ListBox Control.
 //																The SubText field is a right justified field that can add additional information.
 //																Such as displaying a price for an item in and item list for a shop.
+//			1.0.002 : Aug 03, 2016 :	Added the ability to Double-Tap a ListItem in order to select it (fire an OnPointerClick style event).
 //
 // ===========================================================================================================
 
@@ -520,11 +521,13 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 		{
 			// BUG IN UNITY MANDATES THAT, IN ORDER FOR OnPointerClick TO WORK, BOTH 
 			// OnPointerDown AND OnPointerUp EVENTS MUST ALSO BE PRESENT.
+			// SO WE LEAVE THIS EMPTY
 		}
 		public	void							OnPointerUp(		PointerEventData eventData)
 		{
 			// BUG IN UNITY MANDATES THAT, IN ORDER FOR OnPointerClick TO WORK, BOTH 
 			// OnPointerDown AND OnPointerUp EVENTS MUST ALSO BE PRESENT.
+			// SO WE LEAVE THIS EMPTY
 		}
 		public	void							OnPointerClick(	PointerEventData eventData)
 		{
@@ -533,7 +536,7 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 			bool blnShifted = Input.GetKey(KeyCode.LeftShift)		|| Input.GetKey(KeyCode.RightShift);
 			bool blnCtrled	= Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
 			LBcontrol.SelectByIndex(this.Index, blnShifted, blnCtrled);
-			if (eventData.clickCount > 1)
+			if (eventData.clickCount > 1 || Input.touchCount > 1)
 			{
 				// FIRE DOUBLE-CLICK EVENT
 				LBcontrol.HandleDoubleClick(this.Index);
