@@ -142,7 +142,9 @@ public class DemoListBox : MonoBehaviour
 		/// </summary>
 		private void								DisplaySelection()
 		{
-			string st = "";
+			string	st	= "";
+			ResultText	= "";
+
 			if (MyListBox != null)
 				for (int i = 0; i < MyListBox.SelectedIndexes.Count; i++)
 					st += MyListBox.SelectedIndexes[i].ToString() + ": \"" + MyListBox.SelectedValues[i].ToString() + "\" - \"" + MyListBox.GetTextByIndex(MyListBox.SelectedIndexes[i]) + "\"\n";

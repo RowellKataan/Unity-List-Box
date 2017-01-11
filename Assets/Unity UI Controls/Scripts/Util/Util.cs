@@ -460,10 +460,10 @@ public class Util : MonoBehaviour
 			if (strFileName.StartsWith("/") || strFileName.StartsWith("\\"))
 					strFileName = strFileName.Substring(1);
 
-			bool		blnFound		= false;
 			string	strContent	= "";
-			string	strPath			= (Application.persistentDataPath + "/" + strDirectory+ "/" + strFileName).Replace("//", "/");
-			blnFound = File.Exists(strPath);
+			string	strPath			= (Application.dataPath + "/" + strDirectory+ "/" + strFileName).Replace("//", "/");
+			bool		blnFound		= File.Exists(strPath);
+
 			if (!blnFound)
 			{
 				strPath		= (Application.dataPath + "/" + strDirectory + "/" + strFileName).Replace("//", "/");
@@ -513,7 +513,10 @@ public class Util : MonoBehaviour
 		}
 		public	static	bool					FileExists(		string strDirectory, string strFilename)
 		{
+			if (strDirectory.StartsWith("/") || strDirectory.StartsWith("\\"))
+					strDirectory = strDirectory.Substring(1);
 			strDirectory = Application.dataPath + "/" + strDirectory;
+
 			if (!Directory.Exists(strDirectory))
 				return false;
 			else if (File.Exists(strDirectory + "/" + strFilename))

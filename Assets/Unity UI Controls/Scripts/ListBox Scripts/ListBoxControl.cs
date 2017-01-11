@@ -448,8 +448,13 @@ public	class						ListBoxControl : MonoBehaviour
 			if (intIndex >= 0 && intIndex == _intSelectedItem && Items[intIndex] != null)
 			{ 
 				Items[_intSelectedItem].UnSelect();
-				_intSelectedItem = -1;
-			}
+				int i = _intSelectedList.FindIndex(x => x == intIndex);
+				_intSelectedList.RemoveAt(i);
+				if (_intSelectedList.Count > 0)
+					_intSelectedItem = _intSelectedList[0];
+				else
+					_intSelectedItem = -1;
+			} else
 
 			// UNSELECT THE ITEM FROM THE LIST
 			if (_intSelectedList.Count > 0)
@@ -1251,7 +1256,7 @@ public	class						ListBoxControl : MonoBehaviour
 					UnSelectAllItems();
 					SelectByRange(intIndex);
 				}
-				if (_intSelectedItem >= 0)
+				if (_intSelectedItem >= -1)
 				{
 					if (this.OnChange != null) 
 						OnChange(this.gameObject, _intSelectedItem);
