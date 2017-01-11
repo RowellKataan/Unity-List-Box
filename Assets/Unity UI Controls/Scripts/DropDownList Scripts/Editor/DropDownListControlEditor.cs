@@ -18,7 +18,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
-using System.Collections;
+using UnityEditor.SceneManagement;
 using System.Collections.Generic;
 
 
@@ -162,9 +162,11 @@ public class DropDownListControlEditor : Editor
 				EditorGUILayout.Space();
 			}
 
-
 			if (GUI.changed)
+			{
 				EditorUtility.SetDirty(myTarget);
+				EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+			}
 		}
 	}
 

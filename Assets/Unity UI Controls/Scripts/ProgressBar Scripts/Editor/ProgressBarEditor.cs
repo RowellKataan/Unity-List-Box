@@ -15,9 +15,8 @@
 #endif
 
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEditor;
-using System.Collections;
+using UnityEditor.SceneManagement;
 
 [CustomEditor(typeof(ProgressBar))]
 public class ProgressBarEditor : Editor 
@@ -40,7 +39,10 @@ public class ProgressBarEditor : Editor
 			myTarget.ProgressBarColor	= EditorGUILayout.ColorField("Progress Bar Color",	myTarget.ProgressBarColor);
 
 			if (GUI.changed)
+			{
 				EditorUtility.SetDirty(myTarget);
+				EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+			}
 		}
 	}
 }

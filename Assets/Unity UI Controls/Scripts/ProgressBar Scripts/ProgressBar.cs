@@ -1,7 +1,6 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-using System.Collections;
 
 public class ProgressBar : MonoBehaviour 
 {
@@ -16,7 +15,9 @@ public class ProgressBar : MonoBehaviour
 		[SerializeField]
 		private string					_strCaption						= "";
 		[SerializeField]
-		private float						_fValue								= 0.00f;
+		private float						_fCurValue						= 0.00f;
+		[SerializeField]
+		private float						_fMaxValue						= 100.0f;
 		[SerializeField]
 		private float						_fWidth								= 0.00f;
 		[SerializeField]
@@ -24,7 +25,7 @@ public class ProgressBar : MonoBehaviour
 		[SerializeField]
 		private Color						_colTextShadow				= Color.black;
 		[SerializeField]
-		private Color						_colBarColor;
+		private Color						_colBarColor					= Color.cyan;
 
 	#endregion
 
@@ -93,17 +94,41 @@ public class ProgressBar : MonoBehaviour
 		{
 			get
 			{
-				return _fValue;
+				return _fCurValue;
 			}
 			set
 			{
-				_fValue = value;
-				if (_fValue > 1.00f)
-						_fValue = Mathf.Clamp((_fValue / 100.00f), 0.00f, 1.00f);
+				_fCurValue = value;
+				if (_fCurValue > _fMaxValue)
+						_fCurValue = _fMaxValue;
+				float		f = Mathf.Clamp((_fCurValue / _fMaxValue), 0.00f, 1.00f);
 				Vector2 v = ProgressBarLine.GetComponent<RectTransform>().sizeDelta;
-				v.x = ProgressWidth * _fValue;
+				v.x = ProgressWidth * f;
 				ProgressBarLine.GetComponent<RectTransform>().sizeDelta = v;
-				ProgressText.GetComponent<Text>().text = (_fValue * 100).ToString("##0") + "%";
+				ProgressText.GetComponent<Text>().text = _fCurValue.ToString("##0") + "%";
+			}
+		}
+		public	float						CurValue
+		{
+			get
+			{
+				return Progress;
+			}
+			set
+			{
+				Progress = value;
+			}
+		}
+		public	float						MaxValue
+		{
+			get
+			{
+				return _fMaxValue;
+			}
+			set
+			{
+				_fMaxValue = value;
+				Progress = _fCurValue;
 			}
 		}
 
@@ -150,9 +175,15 @@ public class ProgressBar : MonoBehaviour
 
 		private void						Awake()
 		{
-			_fValue		= 0.00f;
-			Progress	= _fValue;
-			Caption		= "";
+			_fCurValue	= 0.00f;
+			Progress		= _fCurValue;
+			Caption			= "";
+		}
+		private void						Start()
+		{
+			ProgressBarColor	= _colBarColor;
+			TextColor					= _colTextColor;
+			TextShadow				= _colTextShadow;
 		}
 
 	#endregion
@@ -161,14 +192,14 @@ public class ProgressBar : MonoBehaviour
 
 		public	void						Reset()
 		{
-			_fValue		= 0.00f;
-			Progress	= _fValue;
-			Caption		= "";
+			_fCurValue	= 0.00f;
+			Progress		= _fCurValue;
+			Caption			= "";
 		}
 		public	void						SetProgress(float fCurrent, float fMaximum)
 		{
-			_fValue		= Mathf.Clamp(fCurrent / fMaximum, 0f, 1f);
-			Progress	= _fValue;
+			_fMaxValue	= fMaximum;
+			Progress		= fCurrent;
 		}
 
 	#endregion

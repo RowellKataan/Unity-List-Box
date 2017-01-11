@@ -34,8 +34,30 @@ public class Util : MonoBehaviour
 			strInput = StringCheck(strInput);
 			try
 			{
-				int intReturn = System.Convert.ToInt32(strInput);
-				return true;
+				int n;
+				return int.TryParse(strInput, out n) && !strInput.Contains(",");
+			} catch {
+				return false;
+			}
+		}
+		public	static bool			IsLong(			string strInput)
+		{
+			strInput = StringCheck(strInput);
+			try
+			{
+				long n;
+				return long.TryParse(strInput, out n) && !strInput.Contains(",");
+			} catch {
+				return false;
+			}
+		}
+		public	static bool			IsFloat(		string strInput)
+		{
+			strInput = StringCheck(strInput);
+			try
+			{
+				float n;
+				return float.TryParse(strInput, out n) && !strInput.Contains(",");
 			} catch {
 				return false;
 			}
@@ -45,8 +67,8 @@ public class Util : MonoBehaviour
 			strInput = StringCheck(strInput);
 			try
 			{
-				double dblReturn = System.Convert.ToDouble(strInput);
-				return true;
+				double n;
+				return double.TryParse(strInput, out n) && !strInput.Contains(",");
 			} catch {
 				return false;
 			}
@@ -56,8 +78,8 @@ public class Util : MonoBehaviour
 			strInput = StringCheck(strInput);
 			try
 			{
-				System.DateTime dtReturn = System.DateTime.Parse(strInput);
-				return true;
+				System.DateTime temp;
+				return System.DateTime.TryParse(strInput, out temp);
 			} catch {
 				return false;
 			}
@@ -81,15 +103,10 @@ public class Util : MonoBehaviour
 
 		public static System.DateTime	ConvertToDate(				string	strInput)
 		{
-			System.DateTime dtReturn;
-			strInput = StringCheck(strInput);
-			try
-			{
-				dtReturn = System.DateTime.Parse(strInput); 
-				return dtReturn;
-			} catch {
+			if (IsDate(strInput))
+				return System.DateTime.Parse(strInput);
+			else
 				return System.DateTime.Parse("01/01/0001");
-			}
 		}
 		public static string					PlusMinus(						int			intInput)
 		{
@@ -100,15 +117,10 @@ public class Util : MonoBehaviour
 		}
 		public static int							ConvertToInt(					string	strInput)
 		{
-			int intReturn = 0;	
-			strInput = StringCheck(strInput);		
-			try
-			{
-				intReturn = System.Convert.ToInt32(strInput);
-				return intReturn;
-			} catch {
+			if (IsInt(strInput))
+				return System.Convert.ToInt32(strInput);
+			else
 				return 0;
-			}	
 		}
 		public static int							ConvertToInt(					bool		blnInput)
 		{
@@ -126,33 +138,29 @@ public class Util : MonoBehaviour
 		}
 		public static long						ConvertToLong(				string	strInput)
 		{
-			long lngReturn = 0;
-			strInput = StringCheck(strInput);
-			try
-			{
-				lngReturn = System.Convert.ToInt64(strInput);
-				return lngReturn;
-			} catch { return 0; }
+			if (IsLong(strInput))
+				return System.Convert.ToInt64(strInput);
+			else
+				 return 0; 
 		}
 		public static float						ConvertToFloat(				string	strInput)
 		{
-			float dblReturn = 0;
-			strInput = StringCheck(strInput);
-			try
-			{
-				dblReturn = System.Convert.ToSingle(strInput);
-				return dblReturn;
-			} catch {
+			if (IsFloat(strInput))
+				return System.Convert.ToSingle(strInput);
+			else
 				return 0;
-			}
 		}
 		public static float						ConvertToFloat(				int			intInput)
 		{
 			return System.Convert.ToSingle(intInput);
 		}
+		public static float						ConvertToFloat(				double	dblInput)
+		{
+			return (float)  float.Parse(dblInput.ToString());
+		}
 		public static bool						ConvertToBoolean(			string	strInput)
 		{
-			if (strInput.ToLower().Trim() == "true" || strInput == "1")
+			if (strInput.Trim().ToLower().Trim() == "true" || strInput.Trim() == "1")
 				return true;
 			return false;
 		}
@@ -199,32 +207,10 @@ public class Util : MonoBehaviour
 		{
 			bool blnNegative = (dblInput < 0);
 			dblInput = Mathf.Abs(dblInput);
-			string strTemp = (dblInput * Mathf.Pow(10, intPlaces)).ToString();
-			if (strTemp.Contains("."))
-				strTemp = strTemp.Substring(0, strTemp.IndexOf('.'));
-			dblInput = float.Parse(strTemp) / Mathf.Pow(10, intPlaces);
-			string strOutput = dblInput.ToString();
-			if (strOutput.IndexOf(".") < 0)
-				strOutput += "." + ("00000000000000000000").Substring(0, intPlaces);
-			int intTemp = (strOutput.Length - strOutput.IndexOf(".")) - 1;
-			if (intTemp < intPlaces)
-				strOutput += ("00000000000000000000").Substring(0, intPlaces - intTemp);
-
-			strTemp = strOutput.Substring(0, strOutput.LastIndexOf('.'));
-			string strConv = "";
-			for (int i = 1; i <= strTemp.Length; i++)
-			{
-				strConv = strTemp.Substring(strTemp.Length - i, 1) + strConv;
-				if (i % 3 == 0)
-					strConv = "," + strConv;
-			}
-
-			if (strConv.StartsWith(","))
-				strConv = strConv.Substring(1);
-
-			strOutput = strConv + strOutput.Substring(strOutput.LastIndexOf('.'));
-			if (intPlaces == 0)
-				strOutput = strOutput.Substring(0, strOutput.LastIndexOf('.'));
+			string strTem = "#,##0";
+			if (intPlaces > 0)
+				strTem += "." + ("".PadLeft(intPlaces, '0'));
+			string strOutput = dblInput.ToString(strTem);
 
 			if (dblInput > 0 && blnAddSign)
 			{
@@ -464,18 +450,37 @@ public class Util : MonoBehaviour
 
 	#region "FILE FUNCTIONS"
 
-		public	static	string				ReadTextFile(	string strFileName, bool blnStripCRLF = false)
+		public	static	string				ReadTextFile( string strDirectory,	string strFileName, bool blnStripCRLF = false)
 		{
-			string strContent = "";
-			string strPath		= Application.persistentDataPath  + "/" + strFileName;
+			// STRIP LEADING AND TRAILING SLASHES
+			if (strDirectory.StartsWith("/") || strDirectory.StartsWith("\\"))
+					strDirectory = strDirectory.Substring(1);
+			if (strDirectory.EndsWith("/") || strDirectory.EndsWith("\\"))
+					strDirectory = strDirectory.Substring(0, strDirectory.Length - 1);
+			if (strFileName.StartsWith("/") || strFileName.StartsWith("\\"))
+					strFileName = strFileName.Substring(1);
+
+			bool		blnFound		= false;
+			string	strContent	= "";
+			string	strPath			= (Application.persistentDataPath + "/" + strDirectory+ "/" + strFileName).Replace("//", "/");
+			blnFound = File.Exists(strPath);
+			if (!blnFound)
+			{
+				strPath		= (Application.dataPath + "/" + strDirectory + "/" + strFileName).Replace("//", "/");
+				blnFound	= File.Exists(strPath);
+			}
 			try 
 			{
+				if (blnFound)
+				{ 
 				StreamReader src = new StreamReader(strPath);
 				strContent = src.ReadToEnd();
 				src.Close();
 
 				if (blnStripCRLF)
 					strContent = strContent.Replace("\n\n", "\n");
+				} else
+					Debug.LogError("Unable to read \"" + strPath + "\".");
 			} catch {
 				Debug.LogError("Unable to read \"" + strPath + "\".");
 			}
@@ -719,12 +724,31 @@ public class Util : MonoBehaviour
 			}
 			return closestObject;
 		}
-		public	static	Color					HexToColor(string hex)
+		public	static	Color					HexToColor(string hex, byte opacity = 255)
 		{
+			hex = hex.ToUpper();
+			hex = hex.Replace("#", "");
+			if (hex.Length < 6)
+					hex = hex.PadRight(6, 'F');
 			byte r = byte.Parse(hex.Substring(0, 2), System.Globalization.NumberStyles.HexNumber);
 			byte g = byte.Parse(hex.Substring(2, 2), System.Globalization.NumberStyles.HexNumber);
 			byte b = byte.Parse(hex.Substring(4, 2), System.Globalization.NumberStyles.HexNumber);
-			return new Color32(r, g, b, 255);
+			byte a = opacity;
+			if (hex.Length > 6 && opacity == 255)
+					 a = byte.Parse(hex.PadRight(8, 'F').Substring(6, 2), System.Globalization.NumberStyles.HexNumber);
+			return new Color32(r, g, b, a);
+		}
+		public	static	string				ColorToHex(Color c, bool useHash = true)
+		{
+			if (useHash)
+				return string.Format("#{0:X2}{1:X2}{2:X2}", ToByte(c.r), ToByte(c.g), ToByte(c.b));
+			else
+				return string.Format("{0:X2}{1:X2}{2:X2}", ToByte(c.r), ToByte(c.g), ToByte(c.b));
+		}
+		private static	byte					ToByte(float f)
+		{
+			f = Mathf.Clamp01(f);
+			return (byte)(f * 255);
 		}
 		public	static	Sprite				GetSprite(string strDirectory, string strSpriteName)
 		{
@@ -864,11 +888,11 @@ public class Util : MonoBehaviour
 				case 'N':
 					return "nm";
 				case 'M':
-					return "miles";
+					return "mi";
 				case 'K':
 					return "km";
 				default:
-					return "miles";
+					return "mi";
 			}
 		}
 

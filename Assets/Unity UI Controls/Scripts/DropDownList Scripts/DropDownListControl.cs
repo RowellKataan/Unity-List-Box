@@ -47,10 +47,26 @@ public class DropDownListControl : ListBoxControl
 		[SerializeField]
 		private float							_fHeight						= 36;
 
+		private bool							_blnIamAwake				= false;
 		private bool							_blnDroppedDown			= false;
 		private Event							_evntClick					= null;
 		private RectTransform			_trnLB							= null;
 		private float							_fOffset						= -1;
+		private int								_intIndexPosition		= -1;
+
+	#endregion
+
+	#region "PRIVATE PROPERTIES"
+
+		private int								ControlIndex
+		{
+			get
+			{
+				if (_intIndexPosition < 0)
+						_intIndexPosition = DdlListBox.transform.parent.GetSiblingIndex();
+				return _intIndexPosition;
+			}
+		}
 
 	#endregion
 
@@ -188,7 +204,7 @@ public class DropDownListControl : ListBoxControl
 
 		private void							Awake()
 		{
-			this.ListBoxMode = ListBoxModes.DropDownList;
+			this.ListBoxMode	= ListBoxModes.DropDownList;
 
 			if (DdlListBox != null)
 			{
@@ -196,6 +212,7 @@ public class DropDownListControl : ListBoxControl
 				DdlListBox.PartOfDDL	= true;
 				DdlListBox.Height			= _fHeight;
 				DdlListBox.InitStartItems(_startArray);
+				_blnIamAwake = true;
 			}
 			if (ParentContainer == null)
 					ParentContainer =  this.transform.parent.gameObject;
@@ -206,6 +223,9 @@ public class DropDownListControl : ListBoxControl
 			if (DdlListBox != null)
 			{ 
 				DdlListBox.gameObject.SetActive(true);
+				int i = ControlIndex;
+				if (!_blnIamAwake)
+						Awake();
 				DdlListBox.Show();
 				DdlListBox.OnChange += this.OnChange;
 			}
@@ -233,6 +253,7 @@ public class DropDownListControl : ListBoxControl
 
 				// HIDE THE LISTBOX
 				DdlListBox.Hide();
+				DdlListBox.transform.parent.SetSiblingIndex(ControlIndex);
 			}
 		}
 		private void							OnGUI()
@@ -305,6 +326,7 @@ public class DropDownListControl : ListBoxControl
 					_evntClick = null;
 					DdlListBox.Hide();
 					_blnDroppedDown = false;
+					DdlListBox.transform.parent.SetSiblingIndex(ControlIndex);
 					return true;
 				}
 			}
@@ -786,8 +808,12 @@ public class DropDownListControl : ListBoxControl
 
 		private void									DoShow()
 		{
+			if (_intIndexPosition < 0)
+					_intIndexPosition = DdlListBox.transform.parent.GetSiblingIndex();
 			DdlListBox.transform.parent.SetSiblingIndex(transform.parent.childCount - 1);
+			UpdateListBoxContainerSize();
 			DdlListBox.Show();
+			DdlListBox.SetToIndex(this.SelectedIndex);
 		}
 
 	#endregion
@@ -802,7 +828,10 @@ public class DropDownListControl : ListBoxControl
 				if (_blnDroppedDown)
 					DoShow();
 				else
+				{
+					DdlListBox.transform.parent.SetSiblingIndex(ControlIndex);
 					DdlListBox.Hide();
+				}
 			}
 		}
 
@@ -824,6 +853,7 @@ public class DropDownListControl : ListBoxControl
 					SelectedTextObject.text = DdlListBox.GetTextByIndex(intIndex);
 
 			_blnDroppedDown = false;
+			DdlListBox.transform.parent.SetSiblingIndex(ControlIndex);
 			DdlListBox.Hide();
 
 			if (SelectedIndex >= 0 && this.OnSelectionChange != null)

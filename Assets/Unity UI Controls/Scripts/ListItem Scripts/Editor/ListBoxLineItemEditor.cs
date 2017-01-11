@@ -15,9 +15,8 @@
 #endif
 
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEditor;
-using System.Collections;
+using UnityEditor.SceneManagement;
 
 [CustomEditor(typeof(ListBoxLineItem))]
 public class ListBoxLineItemEditor : Editor 
@@ -70,7 +69,10 @@ public class ListBoxLineItemEditor : Editor
 			EditorGUILayout.Space();
 
 			if (GUI.changed)
+			{
 				EditorUtility.SetDirty(myTarget);
+				EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+			}
 		}
 	}
 

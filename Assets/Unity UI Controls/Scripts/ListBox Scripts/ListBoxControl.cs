@@ -31,6 +31,15 @@ public	delegate	void	OnListBoxDoubleClick(		GameObject go, int intSelected);
 public	class						ListBoxControl : MonoBehaviour 
 {
 
+	#region "PRIVATE CONSTANTS"
+
+		// IF DROPDOWN LIST SELECTION IS NOT BEING PROPERLY SCROLLED TO WHEN THE DROPDOWN LIST IS SELECTED,
+		// TRY INCREASING THE CONSTANT BELOW UNTIL THE SELECTED ITEM SCROLLS INTO VIEW PROPERLY
+		// (THIS CONSTANT IS USED IN THE SetScroll(float fValue) IENUMERATOR
+		private const float			SCROLL_DELAY	= 0.002f;		// BEST DEFAULT: 0.12f ??
+
+	#endregion
+
 	#region "STARTING LIST ITEM CLASS"
 
 		[System.Serializable]
@@ -71,11 +80,12 @@ public	class						ListBoxControl : MonoBehaviour
 		private List<ListBoxLineItem>				_items						= new List<ListBoxLineItem>();
 		private RectTransform								_rtContainer			= null;
 		private RectTransform								_rtScrollRect			= null;
+		private int													_intItemCount			= 0;
 		private int													_intSelectedItem	= -1;
 		private List<int>										_intSelectedList	= new List<int>();
 
 		protected	bool											_blnInitialized		= false;
-		protected bool											_blnInitializing	= false;
+//		protected bool											_blnInitializing	= false;
 
 	#endregion
 
@@ -158,7 +168,11 @@ public	class						ListBoxControl : MonoBehaviour
 			{
 				_strTitle = value.Trim();
 				if (ListBoxMode == ListBoxModes.ListBox && ListBoxTitle != null)
-						ListBoxTitle.text = _strTitle;
+				{
+					ListBoxTitle.gameObject.SetActive(_strTitle != "");
+					ListBoxTitle.text = _strTitle;
+				} else
+					ListBoxTitle.gameObject.SetActive(false);
 			}
 		}
 		public		bool										TitleBestFit
@@ -299,7 +313,7 @@ public	class						ListBoxControl : MonoBehaviour
 			get
 			{
 				if (_intSelectedItem < 0 || _intSelectedList == null || _intSelectedList.Count < 0)
-					return null;
+					return "";
 				return Items[_intSelectedList[0]].Text;
 			}
 		}
@@ -339,10 +353,8 @@ public	class						ListBoxControl : MonoBehaviour
 		}
 		private void			Start()
 		{
-			if (_blnInitialized || _blnInitializing || !gameObject.activeInHierarchy)
+			if (!gameObject.activeInHierarchy)		//	&& !_blnInitialized)
 				return;
-
-			_blnInitializing = true;
 
 			// RESIZE THE ITEM CONTAINER TO THE WIDTH OF THE SCROLL RECT
 			if (ContainerRect != null)
@@ -378,16 +390,15 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 
 			// MARK CONTROL AS INITIALIZED
-			_blnInitializing	= false;
 			_blnInitialized		= true;
 		}
 		private void			OnEnable()
 		{
-//		if (!_blnInitialized && !_blnInitializing && gameObject.activeInHierarchy)
-//			Start();
+			if (!_blnInitialized && gameObject.activeInHierarchy)
+				Start();
 
-			// MAKE SURE THAT THE LIST BOX ITEM CONTAINER IS PROPERLY SIZED (HEIGHT)
-			if (ListBoxMode == ListBoxModes.ListBox)
+		// MAKE SURE THAT THE LIST BOX ITEM CONTAINER IS PROPERLY SIZED (HEIGHT)
+		if (ListBoxMode == ListBoxModes.ListBox)
 				UpdateListBoxContainerSize();
 		}
 
@@ -489,16 +500,118 @@ public	class						ListBoxControl : MonoBehaviour
 
 		private IEnumerator		SetScroll(float fValue)
 		{
-			yield return new WaitForSeconds(0.01f);
+			yield return new WaitForSeconds(0.001f);
 			if (gameObject.activeInHierarchy && ScrollBarObject != null && ScrollBarObject.activeSelf && ListBoxMode == ListBoxModes.ListBox)
 			{
-				yield return new WaitForSeconds(0.12f);
+				yield return new WaitForSeconds(SCROLL_DELAY);
 				ScrollBarObject.GetComponent<Scrollbar>().value = 0;
-				yield return new WaitForSeconds(0.001f);
-				ScrollBarObject.GetComponent<Scrollbar>().value = 1;
-				yield return new WaitForSeconds(0.001f);
+//			yield return new WaitForSeconds(0.0001f);
+//			ScrollBarObject.GetComponent<Scrollbar>().value = 1;
+				yield return new WaitForSeconds(0.0001f);
 				ScrollBarObject.GetComponent<Scrollbar>().value = fValue;
 			}
+		}
+
+		private void					PrivAddItem(		string		strValue,	string strText, string strIcon = "",	string	strSub = "")
+		{
+				// CHECK IF LINE ITEM PREFAB EXISTS
+				if (ListBoxLineItemPrefabObject == null)
+				{
+					Debug.LogError(gameObject.name + " is Missing the Line Item Prefab. Please add the Prefab.");
+					return;
+				} else if (ListBoxLineItemPrefabObject.GetComponent<ListBoxLineItem>() == null) {
+					Debug.LogError(gameObject.name + " is Missing the Line Item Prefab. Please add the Prefab.");
+					return;
+				}
+
+				// CALCULATE ICON SPRITE
+				Sprite sprIcon = null;
+				if (strIcon != "")
+				{
+					sprIcon = Resources.Load<Sprite>(strIcon);
+				}
+
+				int i = Items.FindIndex(x => x.Value.ToLower() == strValue.ToLower() || x.Text.ToLower() == strText.ToLower());
+				if (i >= 0)
+				{
+					// ITEM ALREADY EXISTS -- UPDATE IT
+					Items[i].Value		= strValue;
+					Items[i].Text			= strText;
+					Items[i].SubText	= strSub;
+					Items[i].SetIcon(sprIcon);
+				} else {
+					// ITEM DOES NOT EXIST -- CREATE IT
+					_intItemCount++;
+					i = Items.Count;
+					GameObject go = (GameObject)Instantiate(ListBoxLineItemPrefabObject);
+					go.transform.SetParent(ScrollContainerObject.transform);
+					go.GetComponent<ListBoxLineItem>().ListBoxControlObject	= this.gameObject;
+					go.GetComponent<ListBoxLineItem>().Index								= i;
+					go.GetComponent<ListBoxLineItem>().Spacing							= this.Spacing;
+					go.GetComponent<ListBoxLineItem>().Width								= ContainerRect.sizeDelta.x - (this.Spacing * 2);
+					if (this.Height > 0)
+						go.GetComponent<ListBoxLineItem>().Height							= this.Height;
+					else
+						this.Height = go.GetComponent<ListBoxLineItem>().Height;
+					go.GetComponent<ListBoxLineItem>().ItemNormalColor			= ItemNormalColor;
+					go.GetComponent<ListBoxLineItem>().ItemHighlightColor		=	ItemHighlightColor;
+					go.GetComponent<ListBoxLineItem>().ItemSelectedColor		= ItemSelectedColor;
+					go.GetComponent<ListBoxLineItem>().ItemDisabledColor		= ItemDisabledColor;
+					go.GetComponent<ListBoxLineItem>().Value								= strValue;
+					go.GetComponent<ListBoxLineItem>().Text									= strText;
+					go.GetComponent<ListBoxLineItem>().SubText							= strSub;
+					go.GetComponent<ListBoxLineItem>().SetIcon(sprIcon);
+					go.GetComponent<ListBoxLineItem>().AutoSize();
+					Items.Add(go.GetComponent<ListBoxLineItem>());
+					ResizeContainer();
+				}		
+		}
+		private void					PrivAddItem(		string		strValue,	string strText, Sprite sprIcon,				string	strSub = "")
+		{
+				// CHECK IF LINE ITEM PREFAB EXISTS
+				if (ListBoxLineItemPrefabObject == null)
+				{
+					Debug.LogError(gameObject.name + " is Missing the Line Item Prefab. Please add the Prefab.");
+					return;
+				} else if (ListBoxLineItemPrefabObject.GetComponent<ListBoxLineItem>() == null) {
+					Debug.LogError(gameObject.name + " is Missing the Line Item Prefab. Please add the Prefab.");
+					return;
+				}
+
+				int i = Items.FindIndex(x => x.Value.ToLower() == strValue.ToLower() || x.Text.ToLower() == strText.ToLower());
+				if (i >= 0)
+				{
+					// ITEM ALREADY EXISTS -- UPDATE IT
+					Items[i].Value		= strValue;
+					Items[i].Text			= strText;
+					Items[i].SubText	= strSub;
+					Items[i].SetIcon(sprIcon);
+				} else {
+					// ITEM DOES NOT EXIST -- CREATE IT
+					_intItemCount++;
+					i = Items.Count;
+					GameObject go = (GameObject)Instantiate(ListBoxLineItemPrefabObject);
+					go.transform.SetParent(ScrollContainerObject.transform);
+					go.GetComponent<ListBoxLineItem>().ListBoxControlObject = this.gameObject;
+					go.GetComponent<ListBoxLineItem>().Index								= i;
+					go.GetComponent<ListBoxLineItem>().Spacing							= this.Spacing;
+					go.GetComponent<ListBoxLineItem>().Width								= ContainerRect.sizeDelta.x - (this.Spacing * 2);
+					if (this.Height > 0)
+						go.GetComponent<ListBoxLineItem>().Height							= this.Height;
+					else
+						this.Height = go.GetComponent<ListBoxLineItem>().Height;
+					go.GetComponent<ListBoxLineItem>().ItemNormalColor			= ItemNormalColor;
+					go.GetComponent<ListBoxLineItem>().ItemHighlightColor		=	ItemHighlightColor;
+					go.GetComponent<ListBoxLineItem>().ItemSelectedColor		= ItemSelectedColor;
+					go.GetComponent<ListBoxLineItem>().ItemDisabledColor		= ItemDisabledColor;
+					go.GetComponent<ListBoxLineItem>().Value								= strValue;
+					go.GetComponent<ListBoxLineItem>().Text									= strText;
+					go.GetComponent<ListBoxLineItem>().SubText							= strSub;
+					go.GetComponent<ListBoxLineItem>().SetIcon(sprIcon);
+					go.GetComponent<ListBoxLineItem>().AutoSize();
+					Items.Add(go.GetComponent<ListBoxLineItem>());
+					ResizeContainer();
+				}
 		}
 
 	#endregion
@@ -589,7 +702,7 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 			public	virtual	void			SortStartBySub()
 			{
-				StartArray.Sort((p1, p2) => p1.SubText.CompareTo(p2.Text));
+				StartArray.Sort((p1, p2) => p1.SubText.CompareTo(p2.SubText));
 				for (int i = 0; i < StartArray.Count; i++)
 				{
 					StartArray[i].Index = i;
@@ -604,6 +717,7 @@ public	class						ListBoxControl : MonoBehaviour
 			public	virtual	void			Clear()
 			{
 				// INITIALIZE THE ITEM LIST
+				_intItemCount			= 0;
 				_intSelectedItem = -1;
 				_items = new List<ListBoxLineItem>();
 				_intSelectedList = new List<int>();
@@ -619,102 +733,11 @@ public	class						ListBoxControl : MonoBehaviour
 			// -- ADD ITEM TO LISTBOX
 			public	virtual	void			AddItem(string		strValue,	string strText, string strIcon = "",	string	strSub = "")
 			{
-				// CHECK IF LINE ITEM PREFAB EXISTS
-				if (ListBoxLineItemPrefabObject == null)
-				{
-					Debug.LogError(gameObject.name + " is Missing the Line Item Prefab. Please add the Prefab.");
-					return;
-				} else if (ListBoxLineItemPrefabObject.GetComponent<ListBoxLineItem>() == null) {
-					Debug.LogError(gameObject.name + " is Missing the Line Item Prefab. Please add the Prefab.");
-					return;
-				}
-
-				// CALCULATE ICON SPRITE
-				Sprite sprIcon = null;
-				if (strIcon != "")
-				{
-					sprIcon = Resources.Load<Sprite>(strIcon);
-				}
-
-				int i = Items.FindIndex(x => x.Value.ToLower() == strValue.ToLower() || x.Text.ToLower() == strText.ToLower());
-				if (i >= 0)
-				{
-					// ITEM ALREADY EXISTS -- UPDATE IT
-					Items[i].Value		= strValue;
-					Items[i].Text			= strText;
-					Items[i].SubText	= strSub;
-					Items[i].SetIcon(sprIcon);
-				} else {
-					// ITEM DOES NOT EXIST -- CREATE IT
-					i = Items.Count;
-					GameObject go = (GameObject)Instantiate(ListBoxLineItemPrefabObject);
-					go.transform.SetParent(ScrollContainerObject.transform);
-					go.GetComponent<ListBoxLineItem>().ListBoxControlObject	= this.gameObject;
-					go.GetComponent<ListBoxLineItem>().Index								= i;
-					go.GetComponent<ListBoxLineItem>().Spacing							= this.Spacing;
-					go.GetComponent<ListBoxLineItem>().Width								= ContainerRect.sizeDelta.x - (this.Spacing * 2);
-					if (this.Height > 0)
-						go.GetComponent<ListBoxLineItem>().Height							= this.Height;
-					else
-						this.Height = go.GetComponent<ListBoxLineItem>().Height;
-					go.GetComponent<ListBoxLineItem>().ItemNormalColor			= ItemNormalColor;
-					go.GetComponent<ListBoxLineItem>().ItemHighlightColor		=	ItemHighlightColor;
-					go.GetComponent<ListBoxLineItem>().ItemSelectedColor		= ItemSelectedColor;
-					go.GetComponent<ListBoxLineItem>().ItemDisabledColor		= ItemDisabledColor;
-					go.GetComponent<ListBoxLineItem>().Value								= strValue;
-					go.GetComponent<ListBoxLineItem>().Text									= strText;
-					go.GetComponent<ListBoxLineItem>().SubText							= strSub;
-					go.GetComponent<ListBoxLineItem>().SetIcon(sprIcon);
-					go.GetComponent<ListBoxLineItem>().AutoSize();
-					Items.Add(go.GetComponent<ListBoxLineItem>());
-					ResizeContainer();
-				}
+				PrivAddItem(strValue, strText, strIcon, strSub);
 			}
-			public	virtual	void			AddItem(string		strValue,	string strText, Sprite sprIcon,				string	strSub = "")
+			public	virtual void			AddItem(string		strValue, string strText, Sprite sprIcon,				string	strSub = "")
 			{
-				// CHECK IF LINE ITEM PREFAB EXISTS
-				if (ListBoxLineItemPrefabObject == null)
-				{
-					Debug.LogError(gameObject.name + " is Missing the Line Item Prefab. Please add the Prefab.");
-					return;
-				} else if (ListBoxLineItemPrefabObject.GetComponent<ListBoxLineItem>() == null) {
-					Debug.LogError(gameObject.name + " is Missing the Line Item Prefab. Please add the Prefab.");
-					return;
-				}
-
-				int i = Items.FindIndex(x => x.Value.ToLower() == strValue.ToLower() || x.Text.ToLower() == strText.ToLower());
-				if (i >= 0)
-				{
-					// ITEM ALREADY EXISTS -- UPDATE IT
-					Items[i].Value		= strValue;
-					Items[i].Text			= strText;
-					Items[i].SubText	= strSub;
-					Items[i].SetIcon(sprIcon);
-				} else {
-					// ITEM DOES NOT EXIST -- CREATE IT
-					i = Items.Count;
-					GameObject go = (GameObject)Instantiate(ListBoxLineItemPrefabObject);
-					go.transform.SetParent(ScrollContainerObject.transform);
-					go.GetComponent<ListBoxLineItem>().ListBoxControlObject	= this.gameObject;
-					go.GetComponent<ListBoxLineItem>().Index								= i;
-					go.GetComponent<ListBoxLineItem>().Spacing							= this.Spacing;
-					go.GetComponent<ListBoxLineItem>().Width								= ContainerRect.sizeDelta.x - (this.Spacing * 2);
-					if (this.Height > 0)
-						go.GetComponent<ListBoxLineItem>().Height							= this.Height;
-					else
-						this.Height = go.GetComponent<ListBoxLineItem>().Height;
-					go.GetComponent<ListBoxLineItem>().ItemNormalColor			= ItemNormalColor;
-					go.GetComponent<ListBoxLineItem>().ItemHighlightColor		=	ItemHighlightColor;
-					go.GetComponent<ListBoxLineItem>().ItemSelectedColor		= ItemSelectedColor;
-					go.GetComponent<ListBoxLineItem>().ItemDisabledColor		= ItemDisabledColor;
-					go.GetComponent<ListBoxLineItem>().Value								= strValue;
-					go.GetComponent<ListBoxLineItem>().Text									= strText;
-					go.GetComponent<ListBoxLineItem>().SubText							= strSub;
-					go.GetComponent<ListBoxLineItem>().SetIcon(sprIcon);
-					go.GetComponent<ListBoxLineItem>().AutoSize();
-					Items.Add(go.GetComponent<ListBoxLineItem>());
-					ResizeContainer();
-				}
+				PrivAddItem(strValue, strText, sprIcon, strSub);
 			}
 
 			public	virtual	void			AddItem(string		strValue,	string strText, string strIcon, int			intSub)
@@ -891,6 +914,7 @@ public	class						ListBoxControl : MonoBehaviour
 					}
 				}
 
+				_intItemCount--;
 				_intSelectedItem = -1;
 				_intSelectedList = new List<int>();
 				ResizeContainer();
@@ -924,7 +948,7 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 			public	virtual	void			SortByValue()
 			{
-				Items.Sort((p1, p2) => p1.Text.CompareTo(p2.Value));
+				Items.Sort((p1, p2) => p1.Value.CompareTo(p2.Value));
 				for (int i = 0; i < Items.Count; i++)
 				{ 
 					Items[i].Index = i;
@@ -933,7 +957,7 @@ public	class						ListBoxControl : MonoBehaviour
 			}
 			public	virtual	void			SortBySubText()
 			{
-				Items.Sort((p1, p2) => p1.SubText.CompareTo(p2.Value));
+				Items.Sort((p1, p2) => p1.SubText.CompareTo(p2.SubText));
 				for (int i = 0; i < Items.Count; i++)
 				{ 
 					Items[i].Index = i;
@@ -951,6 +975,24 @@ public	class						ListBoxControl : MonoBehaviour
 			{
 				if (gameObject.activeInHierarchy)
 						StartCoroutine(SetScroll(0));
+			}
+			public	virtual	void			SetToIndex(int intIndex)
+			{			
+				// SET THE SCROLLBAR TO MAKE THE SELECTED INDEX (intIndex) VISIBLE IN THE SCROLL CONTAINER
+				float c = ContainerRect.rect.height;											// THE HEIGHT OF THE LISTBOX CONTAINER (VISIBLE TO THE USER)
+				float h = Height + Spacing;																// THE HEIGHT OF AN INDIVIDUAL LIST ITEM
+				float t = ((((float) _items.Count - 2) * h) + Spacing);		// THE TOTAL HEIGHT OF CONTAINER OF ALL LIST ITEMS
+				float p = (((float) intIndex) * h);												// THE Y-POS OF AN INDIVIDUAL LIST ITEM
+				float f = 1.00f;
+				if (p >= t - c  )
+					f = 1.00f - (p / t);
+				else
+					f = 1.00f - (p / (t - c));
+
+				if (intIndex < 1)
+					f = 1;
+				if (gameObject.activeInHierarchy)
+						StartCoroutine(SetScroll(f));
 			}
 
 			// -- CHECK FOR LISTBOX ITEM WITH VALUE
@@ -1268,6 +1310,7 @@ public	class						ListBoxControl : MonoBehaviour
 				Vector2 v2 = ContainerRect.sizeDelta;
 				v2.y = ((this.Height + this.Spacing) * Items.Count) + this.Spacing;
 				ContainerRect.sizeDelta = v2;
+				ResizeContainer();
 			}
 
 			// -- SHOW/HIDE THE LISTBOX CONTROL
