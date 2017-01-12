@@ -41,7 +41,8 @@ public class ProgressBarEditor : Editor
 			if (GUI.changed)
 			{
 				EditorUtility.SetDirty(myTarget);
-				EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+				if (!Application.isPlaying)
+					EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
 			}
 		}
 	}

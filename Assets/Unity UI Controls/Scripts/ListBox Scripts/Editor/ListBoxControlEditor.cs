@@ -14,7 +14,6 @@
 	#undef		IS_DEBUGGING
 #endif
 
-
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
@@ -166,7 +165,8 @@ public class ListBoxControlEditor : Editor
 				if (GUI.changed)
 				{
 					EditorUtility.SetDirty(myTarget);
-					EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+					if (!Application.isPlaying)
+						EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
 				}
 
 			} else {

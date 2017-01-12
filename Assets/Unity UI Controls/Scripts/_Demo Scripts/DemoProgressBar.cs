@@ -15,7 +15,6 @@
 #endif
 
 using UnityEngine;
-using System.Collections;
 
 public class DemoProgressBar : MonoBehaviour 
 {

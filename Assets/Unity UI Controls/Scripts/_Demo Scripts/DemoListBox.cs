@@ -59,6 +59,7 @@ public class DemoListBox : MonoBehaviour
 
 		/// <summary>
 		/// Wait for the ListBoxControl object to finish Initializing before performing actions on it.
+		/// Once Initialized, fill the control with some sample data.
 		/// </summary>
 		/// <returns></returns>
 		private IEnumerator					StartEnum()
@@ -131,7 +132,7 @@ public class DemoListBox : MonoBehaviour
 					}
 
 					blnDone = true;
-					MyDDL.SetToTop();
+					MyDDL.SetToTop();		// SET THE SCROLLBAR TO THE TOP OF THE LIST
 				}
 			}
 			DisplaySelection();
@@ -170,6 +171,11 @@ public class DemoListBox : MonoBehaviour
 					(MyDDL			!= null && go == MyDDL.DdlListBox.gameObject))
 				DisplaySelection();
 		}
+		/// <summary>
+		/// When a ListBoxItem is double-clicked, we want to update the display of selected items to our Results Text box.
+		/// </summary>
+		/// <param name="go"></param>
+		/// <param name="intSelected"></param>
 		public	void	OnDemoDoubleClick(GameObject go, int intSelected)
 		{
 			if ((MyListBox	!= null && go == MyListBox.gameObject) || 
@@ -181,6 +187,9 @@ public class DemoListBox : MonoBehaviour
 
 	#region "BUTTON FUNCTIONS"
 
+		/// <summary>
+		/// The Clear Selected Item from DropDown List button has been clicked.
+		/// </summary>
 		public	void	OnClearDDLClick()
 		{
 			if (MyDDL != null)

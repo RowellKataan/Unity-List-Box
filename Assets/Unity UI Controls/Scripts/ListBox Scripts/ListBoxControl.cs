@@ -19,8 +19,6 @@
 
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.Events;
-using UnityEngine.EventSystems;
 using System.Collections;
 using System.Collections.Generic;
 
@@ -85,7 +83,6 @@ public	class						ListBoxControl : MonoBehaviour
 		private List<int>										_intSelectedList	= new List<int>();
 
 		protected	bool											_blnInitialized		= false;
-//		protected bool											_blnInitializing	= false;
 
 	#endregion
 

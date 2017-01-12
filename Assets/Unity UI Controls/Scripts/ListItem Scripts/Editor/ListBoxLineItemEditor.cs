@@ -9,9 +9,9 @@
 // ===========================================================================================================
 
 #if UNITY_EDITOR
-#define		IS_DEBUGGING
+	#define		IS_DEBUGGING
 #else
-#undef		IS_DEBUGGING
+	#undef		IS_DEBUGGING
 #endif
 
 using UnityEngine;
@@ -71,7 +71,8 @@ public class ListBoxLineItemEditor : Editor
 			if (GUI.changed)
 			{
 				EditorUtility.SetDirty(myTarget);
-				EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+				if (!Application.isPlaying)
+					EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
 			}
 		}
 	}

@@ -1,6 +1,21 @@
-﻿using UnityEngine;
-using UnityEngine.UI;
+﻿// ===========================================================================================================
+//
+// Class/Library: ProgressBar Control
+//        Author: Michael Marzilli   ( http://www.linkedin.com/in/michaelmarzilli , http://www.develteam.com/Developer/Rowell/Portfolio )
+//       Created: Aug 10, 2016
+//	
+// VERS 1.0.000 : Aug 10, 2016 : Original File Created. Released for Unity 3D.
+//
+// ===========================================================================================================
 
+#if UNITY_EDITOR
+	#define		IS_DEBUGGING
+#else
+	#undef		IS_DEBUGGING
+#endif
+
+using UnityEngine;
+using UnityEngine.UI;
 
 public class ProgressBar : MonoBehaviour 
 {

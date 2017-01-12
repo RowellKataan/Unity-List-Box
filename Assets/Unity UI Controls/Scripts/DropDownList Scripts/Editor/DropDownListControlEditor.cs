@@ -9,18 +9,16 @@
 // ===========================================================================================================
 
 #if UNITY_EDITOR
-#define		IS_DEBUGGING
+	#define		IS_DEBUGGING
 #else
-#undef		IS_DEBUGGING
+	#undef		IS_DEBUGGING
 #endif
-
 
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using System.Collections.Generic;
-
 
 [CustomEditor(typeof(DropDownListControl))]
 public class DropDownListControlEditor : Editor 
@@ -165,7 +163,8 @@ public class DropDownListControlEditor : Editor
 			if (GUI.changed)
 			{
 				EditorUtility.SetDirty(myTarget);
-				EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
+				if (!Application.isPlaying)
+					EditorSceneManager.MarkSceneDirty(EditorSceneManager.GetActiveScene());
 			}
 		}
 	}
