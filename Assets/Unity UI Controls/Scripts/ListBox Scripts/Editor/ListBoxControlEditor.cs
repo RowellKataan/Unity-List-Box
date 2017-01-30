@@ -56,11 +56,15 @@ public class ListBoxControlEditor : Editor
 				EditorStyles.label.fontStyle	= FontStyle.Bold;
 				EditorGUILayout.LabelField("LISTBOX SETTINGS");
 				EditorStyles.label.fontStyle	= FontStyle.Normal;
-				myTarget.Title								= EditorGUILayout.TextField(	"ListBox Title",		myTarget.Title);
-				myTarget.TitleBestFit					=	EditorGUILayout.Toggle(			"Best Fit Title",		myTarget.TitleBestFit);
-				myTarget.CanMultiSelect				=	EditorGUILayout.Toggle(			"Can Multi-Select", myTarget.CanMultiSelect);
-				myTarget.AllowDoubleClick			=	EditorGUILayout.Toggle(			"Can Double-Click", myTarget.AllowDoubleClick);
-				string	strChar								= EditorGUILayout.TextField(	"Separator Char",		myTarget.SeparatorChar.ToString()).Trim();
+				myTarget.Title								= EditorGUILayout.TextField(	"ListBox Title",				myTarget.Title);
+				myTarget.TitleBestFit					=	EditorGUILayout.Toggle(			"Best Fit Title",				myTarget.TitleBestFit);
+				myTarget.CanMultiSelect				=	EditorGUILayout.Toggle(			"Can Multi-Select",			myTarget.CanMultiSelect);
+				if (myTarget.CanMultiSelect)
+					myTarget.AutoMultiSelect		= EditorGUILayout.Toggle("-- Multi-Select always on",	myTarget.AutoMultiSelect);
+				else
+					myTarget.AutoMultiSelect		= false;
+				myTarget.AllowDoubleClick			=	EditorGUILayout.Toggle(			"Can Double-Click",			myTarget.AllowDoubleClick);
+				string	strChar								= EditorGUILayout.TextField(	"Separator Char",				myTarget.SeparatorChar.ToString()).Trim();
 				if (strChar.Length > 0 && strChar != myTarget.SeparatorChar.ToString())
 					myTarget.SeparatorChar			= char.Parse(strChar.Substring(0, 1));
 				EditorGUILayout.Separator();

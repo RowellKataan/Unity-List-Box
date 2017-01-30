@@ -533,7 +533,7 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 			if (!this.Enabled)
 				return;
 			bool blnShifted = Input.GetKey(KeyCode.LeftShift)		|| Input.GetKey(KeyCode.RightShift);
-			bool blnCtrled	= Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl);
+			bool blnCtrled	= Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl) || LBcontrol.AutoMultiSelect;
 			LBcontrol.SelectByIndex(this.Index, blnShifted, blnCtrled);
 			if (eventData.clickCount > 1 || Input.touchCount > 1)
 			{

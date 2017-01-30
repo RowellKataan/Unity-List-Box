@@ -131,6 +131,8 @@ public	class						ListBoxControl : MonoBehaviour
 		[SerializeField]
 		public		bool										CanMultiSelect			= false;
 		[SerializeField]
+		public		bool										AutoMultiSelect			= false;
+		[SerializeField]
 		public		float										Height							= 36;
 		[SerializeField]
 		public		float										Spacing							=  4;
