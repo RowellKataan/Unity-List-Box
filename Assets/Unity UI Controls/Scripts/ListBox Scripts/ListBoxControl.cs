@@ -338,9 +338,16 @@ public	class						ListBoxControl : MonoBehaviour
 			if (ListBoxMode == ListBoxModes.DropDownList)
 				return;
 
+			// RE-SIZE THE SCROLL CONTAINER
 			// REMOVE ANY GAMEOBJECTS IN THE CONTAINER
 			if (ScrollContainerObject != null)
-			{ 
+			{
+				// RESIZE THE WIDTH OF THE CONTAINER TO MATCH THE CONTROL
+				Vector2 v2 = ScrollContainerObject.GetComponent<RectTransform>().sizeDelta;
+				v2.x = ScrollContainerObject.transform.parent.GetComponent<RectTransform>().sizeDelta.x;
+				ScrollContainerObject.GetComponent<RectTransform>().sizeDelta = v2;
+
+				// REMOVE GAMEOBJECTS IN THE CONTAINER
 				if (ScrollContainerObject.transform.childCount > 0)
 				{
 					for (int i = ScrollContainerObject.transform.childCount - 1; i >= 0; i--)
