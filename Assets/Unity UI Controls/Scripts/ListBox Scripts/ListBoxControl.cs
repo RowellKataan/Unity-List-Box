@@ -364,7 +364,7 @@ public	class						ListBoxControl : MonoBehaviour
 
 			// RESIZE THE ITEM CONTAINER TO THE WIDTH OF THE SCROLL RECT
 			if (ContainerRect != null)
-					ContainerRect.sizeDelta = new Vector2(ScrollRect.rect.width, ScrollRect.rect.height);
+					ContainerRect.sizeDelta = new Vector2(ScrollRect.rect.width, ContainerRect.rect.height);
 
 			// SET SCROLLBAR SENSITIVITY
 			if (ScrollRectObject != null)
