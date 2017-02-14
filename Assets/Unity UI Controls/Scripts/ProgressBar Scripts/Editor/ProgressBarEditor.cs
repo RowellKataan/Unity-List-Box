@@ -34,6 +34,8 @@ public class ProgressBarEditor : Editor
 			EditorStyles.label.fontStyle = FontStyle.Bold;
 			EditorGUILayout.LabelField("COLOR SETTINGS");
 			EditorStyles.label.fontStyle = FontStyle.Normal;
+			myTarget.DisplayAsPercent	= EditorGUILayout.Toggle("Display As Percent",			myTarget.DisplayAsPercent);
+			EditorGUILayout.Space();
 			myTarget.TextColor				= EditorGUILayout.ColorField("Text Color",					myTarget.TextColor);
 			myTarget.TextShadow				= EditorGUILayout.ColorField("Text Shadow Color",		myTarget.TextShadow);
 			myTarget.ProgressBarColor	= EditorGUILayout.ColorField("Progress Bar Color",	myTarget.ProgressBarColor);
