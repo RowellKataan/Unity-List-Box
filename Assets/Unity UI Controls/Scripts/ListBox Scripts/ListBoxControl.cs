@@ -556,6 +556,14 @@ public	class						ListBoxControl : MonoBehaviour
 					i = Items.Count;
 					GameObject go = (GameObject)Instantiate(ListBoxLineItemPrefabObject);
 					go.transform.SetParent(ScrollContainerObject.transform);
+
+					CanvasScaler scaler = go.transform.GetComponentInParent<CanvasScaler>();
+					if (scaler != null && scaler.uiScaleMode == CanvasScaler.ScaleMode.ScaleWithScreenSize)
+					{
+						// If the parent Canvas Scaler has UI Scale Mode set to "ScaleWithScreenSize", it messes up the item's scale, so we reset it to 1
+						go.transform.localScale = new Vector3(1, 1, 1);
+					}
+
 					go.GetComponent<ListBoxLineItem>().ListBoxControlObject	= this.gameObject;
 					go.GetComponent<ListBoxLineItem>().Index								= i;
 					go.GetComponent<ListBoxLineItem>().Spacing							= this.Spacing;
