@@ -7,11 +7,11 @@ A Unity uGUI Control Library that gives the user ListBox, DropDownList and Progr
 
 ## DropDownList
 
-<img src="Screenshots\DropDownSample1.png" height="400" al="DropDown closed">  <img src="Screenshots\DropDownSample2.png" height="400" al="DropDown opened">
+<img src="Screenshots\DropDownSample1.png" height="320" al="DropDown closed">  <img src="Screenshots\DropDownSample2.png" height="320" al="DropDown opened">
 
 ## ProgressBar
 
-<img src="Screenshots\ProgressBarSample1.png.png" height="400" al="ProgressBar sample">
+<img src="Screenshots\ProgressBarSample1.png" height="400" al="ProgressBar sample">
 
 
-UnityListBox.unitypackage is available to easily integrate into existing projects.
+### UnityListBox.unitypackage is available to easily integrate into existing projects.
