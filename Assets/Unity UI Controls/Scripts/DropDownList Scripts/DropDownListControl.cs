@@ -841,7 +841,7 @@ public class DropDownListControl : ListBoxControl
 
 		public	event	OnDropDownSelectChanged	OnSelectionChange;
 
-		public	void							OnChange(GameObject go, int intIndex)
+		public	new void					OnChange(GameObject go, int intIndex)
 		{
 			if (go != DdlListBox.gameObject)
 				return;

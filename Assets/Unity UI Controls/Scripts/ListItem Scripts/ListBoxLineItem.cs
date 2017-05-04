@@ -386,10 +386,11 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 		private		void						Awake()
 		{
 			// INITIALIZE INTERNAL VARIABLES
-			_rt				= this.GetComponent<RectTransform>();
-			_img			= this.GetComponent<Image>();
-			_fWidth		= _rt.sizeDelta.x;
-			_fHeight	= _rt.sizeDelta.y;
+			_rt							= this.GetComponent<RectTransform>();
+			_img						= this.GetComponent<Image>();
+			_fWidth					= _rt.sizeDelta.x;
+			_fHeight				= _rt.sizeDelta.y;
+	    _rt.localScale	= Vector3.one;
 		}
 		protected	void						UpdatePosition()
 		{
@@ -398,6 +399,8 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 
 			_rt.localPosition	= new Vector3(_fXpos,		_fYpos, 0);
 			_rt.sizeDelta			= new Vector2(_fWidth,	_fHeight);
+	    _rt.localScale		= Vector3.one;
+			transform.localScale	= Vector3.one;
 		}
 		protected void						UpdateContent()
 		{
@@ -460,6 +463,9 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 				_img.color = ItemSelectedColor;
 			else
 				_img.color = ItemNormalColor;
+
+			// EXECUTE CUSTOM DISPLAY METHOD
+			Display();
 		}
 
 	#endregion
@@ -494,6 +500,9 @@ public	partial	class	ListBoxLineItem : MonoBehaviour, IPointerEnterHandler, IPoi
 				Selected		= false;
 				_img.color	= ItemNormalColor;
 			}
+		}
+		public	virtual	void			Display()
+		{
 		}
 
 	#endregion

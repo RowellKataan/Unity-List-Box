@@ -44,6 +44,8 @@ public class ProgressBar : MonoBehaviour
 		[SerializeField]
 		private bool						_blnDisplayAsPercent	= true;
 
+		private bool						_blnIsInitialized			= false;
+
 	#endregion
 
 	#region "PRIVATE PROPERTIES"
@@ -215,6 +217,15 @@ public class ProgressBar : MonoBehaviour
 			ProgressBarColor	= _colBarColor;
 			TextColor					= _colTextColor;
 			TextShadow				= _colTextShadow;
+			Progress					= _fCurValue;
+			_blnIsInitialized = true;
+		}
+		private void						OnEnable()
+		{
+			if (!_blnIsInitialized)
+				Start();
+			else 
+				Progress = _fCurValue;
 		}
 
 	#endregion
