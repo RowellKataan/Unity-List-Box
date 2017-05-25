@@ -26,7 +26,7 @@ public class DemoListBox : MonoBehaviour
 
 	#region "PRIVATE CONSTANTS"
 
-		private const int						MAX_DDL_ITEMS = 200;
+		private const int						MAX_DDL_ITEMS = 200;			// CAP THE NUMBER OF ITEMS IN THIS LISTBOX TO 200 ITEMS
 
 	#endregion
 
@@ -72,6 +72,8 @@ public class DemoListBox : MonoBehaviour
 				{
 					MyListBox.OnChange			+= OnDemoChange;
 					MyListBox.OnDoubleClick	+= OnDemoDoubleClick;
+
+					// MANUALLY ADD SOME DEMO ITEMS TO THE LISTBOX PROGRAMATICALLY
 					for (int i = 4; i < 11; i++)
 					{ 
 						if (i == 4)
@@ -98,8 +100,11 @@ public class DemoListBox : MonoBehaviour
 					blnDone = true;
 					MyListBox.SetToTop();		// SET THE SCROLLBAR TO THE TOP OF THE LIST
 				}
-				if (MyDDL != null && MyDDL.IsInitialized) {
+				if (MyDDL != null && MyDDL.IsInitialized) 
+				{
 					MyDDL.DdlListBox.OnChange += OnDemoChange;
+
+					// MANUALLY ADD SOME DEMO ITEMS TO THE DROPDOWN LIST PROGRAMATICALLY
 					for (int i = 4; i < 11; i++)
 					{ 
 						if (i == 4)
@@ -193,8 +198,26 @@ public class DemoListBox : MonoBehaviour
 		public	void	OnClearDDLClick()
 		{
 			if (MyDDL != null)
-				MyDDL.SelectByIndex(-1);
+					MyDDL.SelectByIndex(-1);
 			DisplaySelection();
+		}
+
+		/// <summary>
+		/// Move the selected item in the ListBox down in the list.
+		/// </summary>
+		public	void	OnMoveDownClick()
+		{
+			if (MyListBox.SelectedIndex >= 0)
+					MyListBox.MoveItemDown(MyListBox.SelectedIndex);
+		}
+
+		/// <summary>
+		/// Move the selected item in the ListBox up in the list.
+		/// </summary>
+		public	void	OnMoveUpClick()
+		{
+			if (MyListBox.SelectedIndex >= 0)
+					MyListBox.MoveItemUp(MyListBox.SelectedIndex);
 		}
 
 	#endregion
